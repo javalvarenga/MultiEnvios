@@ -1,0 +1,36 @@
+# Node.js dependencies
+node_modules/
+pnpm-lock.yaml
+
+# TypeScript compiler output
+dist/
+
+# Environment variables
+.env
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sln
+*.userprefs
+*.iml
+
+# Logs
+logs/
+npm-debug.log*
+yarn-error.log*
+
+# Artifacts of build process
+build/
+coverage/
+src/**/*.js
+src/**/*.map
+
+# Cache directories
+cache/
+.tmp/
+
+# OS-specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
