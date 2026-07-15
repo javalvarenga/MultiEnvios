@@ -10,7 +10,7 @@
     "build": "tsc && vite build --config src/client/vite.config.ts",
     "build:server": "tsc",
     "build:client": "vite build --config src/client/vite.config.ts",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "dev": "tsx watch src/index.ts",
     "dev:client": "vite --config src/client/vite.config.ts"
   },
