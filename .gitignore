@@ -1,12 +1,20 @@
 # Node.js dependencies
 node_modules/
-pnpm-lock.yaml
+**/node_modules/
 
-# TypeScript compiler output
+# Lockfiles (cada paquete puede generar el suyo)
+pnpm-lock.yaml
+**/pnpm-lock.yaml
+
+# Build output
 dist/
+**/dist/
+build/
+coverage/
 
 # Environment variables
 .env
+**/.env
 
 # IDE and editor files
 .idea/
@@ -20,17 +28,13 @@ logs/
 npm-debug.log*
 yarn-error.log*
 
-# Artifacts of build process
-build/
-coverage/
-api/**/*.js
-api/**/*.map
-
-# Cache directories
+# Cache
 cache/
 .tmp/
+**/.vite/
 
 # OS-specific files
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+

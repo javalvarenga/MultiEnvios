@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ApexOptions } from "apexcharts";
-import { DashboardChart } from "./DashboardChart.tsx";
+import { DashboardChart } from "./DashboardChart";
 
 function formatMoney(value: number): string {
   return new Intl.NumberFormat("es-GT", {

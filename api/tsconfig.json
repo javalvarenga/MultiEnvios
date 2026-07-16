@@ -13,6 +13,6 @@
     "declaration": false,
     "resolveJsonModule": true
   },
-  "include": ["api", "web"],
-  "exclude": ["web", "node_modules", "dist", "src"]
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
