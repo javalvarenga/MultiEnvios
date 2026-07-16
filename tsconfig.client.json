@@ -1,12 +1,17 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
+    "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"]
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true
   },
   "include": ["web"],
-  "exclude": ["api"]
+  "exclude": ["api", "node_modules", "dist"]
 }

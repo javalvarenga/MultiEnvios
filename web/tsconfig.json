@@ -1,3 +1,4 @@
 {
-  "extends": "../tsconfig.client.json"
+  "extends": "../tsconfig.client.json",
+  "include": ["."]
 }
