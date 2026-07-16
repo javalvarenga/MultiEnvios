@@ -5,7 +5,6 @@ import {
   Drawer,
   Table,
   Tag,
-  Empty,
   Typography,
   Card,
   Space,
@@ -19,6 +18,7 @@ import {
 import { Dashboard } from "./components/Dashboard";
 import { Sidebar, type MenuPath } from "./components/Sidebar";
 import { ShipmentForm } from "./components/ShipmentForm";
+import { Reports } from "./components/Reports";
 
 const { Sider, Header, Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -152,21 +152,6 @@ function ShipmentsHistory() {
   );
 }
 
-function PlaceholderSection({ title }: { title: string }) {
-  return (
-    <Empty
-      description={
-        <span>
-          <strong>{title}</strong>
-          <br />
-          Sección pendiente de implementar
-        </span>
-      }
-      style={{ padding: "4rem 0" }}
-    />
-  );
-}
-
 export default function App() {
   const [path, setPath] = useState<MenuPath>("/dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -183,7 +168,7 @@ export default function App() {
       content = <ShipmentsHistory />;
       break;
     case "/reports":
-      content = <PlaceholderSection title="Reportes" />;
+      content = <Reports />;
       break;
     default:
       content = <Dashboard />;
