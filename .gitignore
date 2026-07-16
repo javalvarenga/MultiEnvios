@@ -23,8 +23,8 @@ yarn-error.log*
 # Artifacts of build process
 build/
 coverage/
-src/**/*.js
-src/**/*.map
+api/**/*.js
+api/**/*.map
 
 # Cache directories
 cache/

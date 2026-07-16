@@ -63,4 +63,3 @@ export default function App() {
     </div>
   );
 }
-// Implementado layout responsivo con botón hamburguesa y gestión de estado de menú móvil.

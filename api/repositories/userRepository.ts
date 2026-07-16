@@ -1,4 +1,3 @@
-// src/repositories/userRepository.ts
 import { User } from '../models/types.js';
 
 const users: User[] = [

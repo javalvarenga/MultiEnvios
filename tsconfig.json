@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "api"],
-  "exclude": ["src/client"]
+  "include": ["api", "web"],
+  "exclude": ["web"]
 }

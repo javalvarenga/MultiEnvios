@@ -1,4 +1,3 @@
-// src/services/authService.ts
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import { userRepository } from '../repositories/userRepository.js';

@@ -1,4 +1,3 @@
-// src/repositories/shipmentRepository.ts
 import { Shipment } from '../models/types.js';
 
 export const shipmentRepository = {
