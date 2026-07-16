@@ -1,301 +1,42 @@
-:root {
-  --neon-primary: #00f2ff;
-  --neon-secondary: #bc13fe;
-  --neon-accent: #ff00ff;
-  --neon-bg: #0a0a12;
-  --neon-surface: #161625;
-  --neon-text: #e0e0ff;
-  --neon-text-muted: #8888aa;
-  --neon-border: #2a2a4a;
-  --neon-shadow: 0 0 10px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 242, 255, 0.2);
-}
+/* Minimal global overrides for Ant Design dark theme */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Ensure body background matches dark theme */
 body {
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--neon-bg);
-  color: var(--neon-text);
-  line-height: 1.5;
+  margin: 0;
+  background-color: #0d1117;
+  color: #e0e0e0;
 }
 
-.app-shell {
-  display: flex;
-  min-height: 100vh;
-  background: radial-gradient(circle at top left, #1a1a3a 0%, #0a0a12 100%);
+/* Hide mobile menu button on desktop, show on mobile */
+.mobile-menu-btn {
+  display: none !important;
 }
 
-.app-content {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-@media (min-width: 768px) {
-  .app-content {
-    padding: 2rem;
+@media (max-width: 991px) {
+  .mobile-menu-btn {
+    display: inline-flex !important;
   }
 }
 
-/* Mobile Header */
-.mobile-header {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background-color: var(--neon-surface);
-  border-bottom: 1px solid var(--neon-border);
-  z-index: 100;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
+/* Ensure charts fill their container */
+.apexcharts-canvas {
+  width: 100% !important;
 }
 
-.mobile-brand {
-  color: var(--neon-primary);
-  font-weight: 800;
-  font-size: 1.2rem;
+/* Smooth scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.menu-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 10px;
-  z-index: 101;
+::-webkit-scrollbar-track {
+  background: #0d1117;
 }
 
-.hamburger {
-  width: 25px;
-  height: 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.hamburger span {
-  display: block;
-  height: 3px;
-  width: 100%;
-  background-color: var(--neon-primary);
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 260px;
-  background-color: var(--neon-surface);
-  border-right: 1px solid var(--neon-border);
-  padding: 1.5rem 0;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 5px 0 15px rgba(0,0,0,0.3);
-  transition: transform 0.3s ease;
-}
-
-.sidebar-brand {
-  font-size: 1.5rem;
-  font-weight: 800;
-  padding: 0 1.5rem 2rem;
-  color: var(--neon-primary);
-}
-
-.sidebar ul {
-  list-style: none;
-}
-
-.sidebar-link {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  text-align: left;
-  background: transparent;
-  border: none;
-  color: var(--neon-text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
-}
-
-.sidebar-link:hover, .sidebar-link.active {
-  color: var(--neon-primary);
-  background-color: rgba(0, 242, 255, 0.1);
-  border-left: 4px solid var(--neon-primary);
-}
-
-/* Dashboard */
-.dashboard-header {
-  margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-  font-size: 2.2rem;
-  color: var(--neon-primary);
-  text-shadow: var(--neon-shadow);
-}
-
-.dashboard-header p.muted {
-  color: var(--neon-text-muted);
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.kpi-card {
-  background: var(--neon-surface);
-  border: 1px solid var(--neon-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.kpi-label {
-  color: var(--neon-text-muted);
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-}
-
-.kpi-value {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--neon-text);
-}
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.chart-card {
-  background: var(--neon-surface);
-  border: 1px solid var(--neon-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-}
-
-.chart-title {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  color: var(--neon-text);
-  border-bottom: 1px solid var(--neon-border);
-  padding-bottom: 0.5rem;
-}
-
-/* Shipment Form */
-.shipment-form {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.form-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.form-header h1 {
-  font-size: 2rem;
-  color: var(--neon-primary);
-}
-
-.form-card {
-  background: var(--neon-surface);
-  border: 1px solid var(--neon-border);
-  border-radius: 12px;
-  padding: 2rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  color: var(--neon-text-muted);
-}
-
-.form-group input {
-  padding: 0.75rem;
-  background-color: #0f0f1d;
-  border: 1px solid var(--neon-border);
-  color: var(--neon-text);
+::-webkit-scrollbar-thumb {
+  background: #2a2a4a;
   border-radius: 4px;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 2rem;
+::-webkit-scrollbar-thumb:hover {
+  background: #00b4d8;
 }
-
-.btn-primary {
-  padding: 0.75rem 1.5rem;
-  background: var(--neon-primary);
-  color: var(--neon-bg);
-  border: none;
-  border-radius: 4px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.dashboard-state {
-  padding: 2rem;
-  text-align: center;
-}
-
-.neon-text {
-  color: var(--neon-primary);
-  text-shadow: var(--neon-shadow);
-}
-
-/* RESPONSIVE BREAKPOINTS */
-@media (max-width: 767px) {
-  .mobile-header {
-    display: flex;
-  }
-
-  .app-shell {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    height: calc(100vh - 60px);
-    z-index: 99;
-    transform: translateX(-100%);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .app-content {
-    padding-top: 70px;
-  }
-
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-}
-// Actualizado neon.scss con media queries para responsive design, estilos de botón hamburguesa y ajustes de layout.

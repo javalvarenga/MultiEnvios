@@ -1,52 +1,57 @@
-export type MenuPath = 
+import { Menu } from "antd";
+import type { MenuProps } from "antd";
+import type { ReactNode } from "react";
+import {
+  DashboardOutlined,
+  PlusCircleOutlined,
+  UnorderedListOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
+
+export type MenuPath =
   | "/dashboard"
   | "/shipment/new"
   | "/shipments"
   | "/reports";
 
-interface MenuItem {
-  label: string;
-  path: MenuPath;
-}
-
-const menuItems: MenuItem[] = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Nuevo envío", path: "/shipment/new" },
-  { label: "Historial", path: "/shipments" },
-  { label: "Reportes", path: "/reports" },
+const menuItems: { key: MenuPath; label: string; icon: ReactNode }[] = [
+  { key: "/dashboard", label: "Dashboard", icon: <DashboardOutlined /> },
+  { key: "/shipment/new", label: "Nuevo envío", icon: <PlusCircleOutlined /> },
+  { key: "/shipments", label: "Historial", icon: <UnorderedListOutlined /> },
+  { key: "/reports", label: "Reportes", icon: <BarChartOutlined /> },
 ];
 
-export function Sidebar({
-  active,
-  onNavigate,
-  isOpen,
-}: {
+interface SidebarProps {
   active: MenuPath;
   onNavigate: (path: MenuPath) => void;
-  isOpen?: boolean;
-}) {
+}
+
+export function Sidebar({ active, onNavigate }: SidebarProps) {
+  const items: MenuProps["items"] = menuItems.map((item) => ({
+    key: item.key,
+    icon: item.icon,
+    label: item.label,
+  }));
+
   return (
-    <nav 
-      className={`sidebar ${isOpen ? 'open' : ''}`}
-      aria-label="Menu principal"
-    >
-      <div className="sidebar-brand">MULTIENVÍOS GT</div>
-      <ul>
-        {menuItems.map((item) => (
-          <li key={item.path}>
-            <button
-              type="button"
-              className={ 
-                active === item.path ? "sidebar-link active" : "sidebar-link"
-              }
-              onClick={() => onNavigate(item.path)}
-            >
-              {item.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <div style={{ height: "100%", background: "#141b2d" }}>
+      <div
+        style={{
+          padding: "24px 20px",
+          fontWeight: 800,
+          fontSize: "1.3rem",
+          color: "#00b4d8",
+        }}
+      >
+        MULTIENVÍOS GT
+      </div>
+      <Menu
+        mode="inline"
+        selectedKeys={[active]}
+        items={items}
+        onClick={(e) => onNavigate(e.key as MenuPath)}
+        style={{ background: "transparent", borderInlineEnd: "none" }}
+      />
+    </div>
   );
 }
-// Añadido soporte para prop 'isOpen' para controlar visibilidad en móviles via CSS.

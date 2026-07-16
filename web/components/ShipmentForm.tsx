@@ -1,58 +1,95 @@
-import { useState } from "react";
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Typography,
+  Row,
+  Col,
+  Space,
+  App as AntApp,
+} from "antd";
+import { SendOutlined } from "@ant-design/icons";
+
+const { Title, Paragraph } = Typography;
 
 export function ShipmentForm() {
-  const [formData, setFormData] = useState({
-    recipient: "",
-    phone: "",
-    address: "",
-    reference1: "",
-    reference2: ""
-  });
+  const { message } = AntApp.useApp();
+  const [form] = Form.useForm();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Formulario enviado:", formData);
-    alert("Envío creado con éxito (simulado)");
+  const handleSubmit = (values: unknown) => {
+    console.log("Formulario enviado:", values);
+    message.success("Envío creado con éxito (simulado)");
+    form.resetFields();
   };
 
   return (
-    <div className="shipment-form">
-      <header className="form-header">
-        <h1 className="neon-text">Nuevo Envío</h1>
-        <p className="muted">Complete los datos del destinatario para generar la guía</p>
-      </header>
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+      <div style={{ marginBottom: 24, textAlign: "center" }}>
+        <Title level={2}>Nuevo Envío</Title>
+        <Paragraph type="secondary">
+          Complete los datos del destinatario para generar la guía
+        </Paragraph>
+      </div>
 
-      <form onSubmit={handleSubmit} className="form-grid">
-        <div className="form-group">
-          <label>Destinatario</label>
-          <input name="recipient" value={formData.recipient} onChange={handleChange} placeholder="Nombre completo" required />
-        </div>
-        <div className="form-group">
-          <label>Teléfono</label>
-          <input name="phone" value={formData.phone} onChange={handleChange} placeholder="+502 xxxx xxxx" required />
-        </div>
-        <div className="form-group">
-          <label>Dirección Exacta</label>
-          <input name="address" value={formData.address} onChange={handleChange} placeholder="Calle, Zona, Ciudad" required />
-        </div>
-        <div className="form-group">
-          <label>Referencia 1</label>
-          <input name="reference1" value={formData.reference1} onChange={handleChange} placeholder="Ej. Casa color verde" />
-        </div>
-        <div className="form-group">
-          <label>Referencia 2</label>
-          <input name="reference2" value={formData.reference2} onChange={handleChange} placeholder="Ej. Cerca de tienda X" />
-        </div>
+      <Card>
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Destinatario"
+                name="recipient"
+                rules={[
+                  { required: true, message: "Ingrese el nombre del destinatario" },
+                ]}
+              >
+                <Input placeholder="Nombre completo" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Teléfono"
+                name="phone"
+                rules={[{ required: true, message: "Ingrese el teléfono" }]}
+              >
+                <Input placeholder="+502 xxxx xxxx" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        <div className="form-actions">
-          <button type="submit" className="btn-neon">Generar Guía</button>
-        </div>
-      </form>
+          <Form.Item
+            label="Dirección Exacta"
+            name="address"
+            rules={[{ required: true, message: "Ingrese la dirección" }]}
+          >
+            <Input placeholder="Calle, Zona, Ciudad" />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Referencia 1" name="reference1">
+                <Input placeholder="Ejemplo: Casa color verde" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Referencia 2" name="reference2">
+                <Input placeholder="Ejemplo: Cerca de tienda X" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Space style={{ width: "100%", justifyContent: "flex-end", marginTop: 16 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SendOutlined />}
+              size="large"
+            >
+              Generar Guía
+            </Button>
+          </Space>
+        </Form>
+      </Card>
     </div>
   );
 }
