@@ -19,6 +19,7 @@ import { Dashboard } from "./components/Dashboard";
 import { Sidebar, type MenuPath } from "./components/Sidebar";
 import { ShipmentForm } from "./components/ShipmentForm";
 import { Reports } from "./components/Reports";
+import { ConfigScreen } from "./components/ConfigScreen";
 
 const { Sider, Header, Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -169,6 +170,9 @@ export default function App() {
       break;
     case "/reports":
       content = <Reports />;
+      break;
+    case "/config":
+      content = <ConfigScreen />;
       break;
     default:
       content = <Dashboard />;

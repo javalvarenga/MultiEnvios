@@ -6,19 +6,22 @@ import {
   PlusCircleOutlined,
   UnorderedListOutlined,
   BarChartOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 
 export type MenuPath =
   | "/dashboard"
   | "/shipment/new"
   | "/shipments"
-  | "/reports";
+  | "/reports"
+  | "/config";
 
 const menuItems: { key: MenuPath; label: string; icon: ReactNode }[] = [
   { key: "/dashboard", label: "Dashboard", icon: <DashboardOutlined /> },
   { key: "/shipment/new", label: "Nuevo envío", icon: <PlusCircleOutlined /> },
   { key: "/shipments", label: "Historial", icon: <UnorderedListOutlined /> },
   { key: "/reports", label: "Reportes", icon: <BarChartOutlined /> },
+  { key: "/config", label: "Configuración", icon: <SettingOutlined /> },
 ];
 
 interface SidebarProps {
