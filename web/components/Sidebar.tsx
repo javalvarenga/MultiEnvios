@@ -37,13 +37,13 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
   }));
 
   return (
-    <div style={{ height: "100%", background: "#141b2d" }}>
+    <div style={{ height: "100%", background: "#ffffff" }}>
       <div
         style={{
           padding: "24px 20px",
           fontWeight: 800,
           fontSize: "1.3rem",
-          color: "#00b4d8",
+          color: "#1976d2",
         }}
       >
         MULTIENVÍOS GT

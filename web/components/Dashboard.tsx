@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { Row, Col, Card, Statistic, Typography } from "antd";
+import { Box, Paper, Typography, Button } from "@mui/material";
 import type { ApexOptions } from "apexcharts";
 import { DashboardChart } from "./DashboardChart";
-
-const { Title, Paragraph } = Typography;
 
 function formatMoney(value: number): string {
   return new Intl.NumberFormat("es-GT", {
@@ -46,101 +44,119 @@ export function Dashboard() {
 
   const activityOptions: ApexOptions = {
     chart: { toolbar: { show: false }, background: "transparent" },
-    colors: ["#00b4d8"],
+    colors: ["#1976d2"],
     stroke: { curve: "smooth", width: 3 },
     xaxis: {
       categories: data.weeklyActivity.map((d) => d.day),
-      labels: { style: { colors: "#888" } },
+      labels: { style: { colors: "#666" } },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
-    yaxis: { labels: { style: { colors: "#888" } } },
-    grid: { borderColor: "#2a2a4a", strokeDashArray: 4 },
-    tooltip: { theme: "dark" },
+    yaxis: { labels: { style: { colors: "#666" } } },
+    grid: { borderColor: "#e0e0e0", strokeDashArray: 4 },
+    tooltip: { theme: "light" },
   };
 
   const statusOptions: ApexOptions = {
     chart: { background: "transparent" },
     labels: data.statusDistribution.map((d) => d.label),
-    colors: ["#00b4d8", "#722ed1", "#ff00ff", "#ffcc00"],
+    colors: ["#1976d2", "#9c27b0", "#ff4081", "#ffb300"],
     stroke: { show: false },
-    legend: { position: "bottom", labels: { colors: "#e0e0ff" } },
-    tooltip: { theme: "dark" },
+    legend: { position: "bottom", labels: { colors: "#333" } },
+    tooltip: { theme: "light" },
   };
 
   const growthOptions: ApexOptions = {
     chart: { toolbar: { show: false }, background: "transparent" },
-    colors: ["#722ed1"],
+    colors: ["#9c27b0"],
     plotOptions: { bar: { borderRadius: 4, columnWidth: "40%" } },
     xaxis: {
       categories: data.monthlyGrowth.map((d) => d.month),
-      labels: { style: { colors: "#888" } },
+      labels: { style: { colors: "#666" } },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
-    yaxis: { labels: { style: { colors: "#888" } } },
-    grid: { borderColor: "#2a2a4a", strokeDashArray: 4 },
-    tooltip: { theme: "dark" },
+    yaxis: { labels: { style: { colors: "#666" } } },
+    grid: { borderColor: "#e0e0e0", strokeDashArray: 4 },
+    tooltip: { theme: "light" },
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>
-          Dashboard
-        </Title>
-        <Paragraph type="secondary">
-          Panel de control central de envíos (Modo Simulación)
-        </Paragraph>
-      </div>
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 3,
+        }}
+      >
+        <Box>
+          <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Dashboard
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Panel de control central de envíos (Modo Simulación)
+          </Typography>
+        </Box>
+        <Button variant="contained" color="primary" size="small">
+          Actualizar
+        </Button>
+      </Box>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="Envíos Hoy" value={data.shipmentsToday} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic title="En Tránsito" value={data.shipmentsInTransit} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Ingresos Est."
-              value={formatMoney(data.estimatedRevenue)}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
+        <Paper sx={{ flex: "1 1 0", minWidth: 200, p: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Envíos Hoy
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            {data.shipmentsToday}
+          </Typography>
+        </Paper>
+        <Paper sx={{ flex: "1 1 0", minWidth: 200, p: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            En Tránsito
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            {data.shipmentsInTransit}
+          </Typography>
+        </Paper>
+        <Paper sx={{ flex: "1 1 0", minWidth: 200, p: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Ingresos Est.
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            {formatMoney(data.estimatedRevenue)}
+          </Typography>
+        </Paper>
+      </Box>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+        <Box sx={{ flex: { xs: "1 1 100%", lg: "1 1 calc(50% - 8px)" } }}>
           <DashboardChart
             title="Actividad Semanal"
             type="line"
             options={activityOptions}
             series={[{ name: "Envíos", data: data.weeklyActivity.map((d) => d.value) }]}
           />
-        </Col>
-        <Col xs={24} lg={12}>
+        </Box>
+        <Box sx={{ flex: { xs: "1 1 100%", lg: "1 1 calc(50% - 8px)" } }}>
           <DashboardChart
             title="Distribución de Estados"
             type="donut"
             options={statusOptions}
             series={data.statusDistribution.map((d) => d.value)}
           />
-        </Col>
-        <Col xs={24}>
+        </Box>
+        <Box sx={{ flex: "1 1 100%" }}>
           <DashboardChart
             title="Crecimiento Mensual"
             type="bar"
             options={growthOptions}
             series={[{ name: "Total", data: data.monthlyGrowth.map((d) => d.value) }]}
           />
-        </Col>
-      </Row>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

@@ -185,7 +185,7 @@ export default function App() {
         collapsedWidth={0}
         trigger={null}
         width={240}
-        style={{ background: "#141b2d" }}
+        style={{ background: "#ffffff", borderRight: "1px solid #e0e0e0" }}
       >
         <Sidebar active={path} onNavigate={setPath} />
       </Sider>
@@ -206,13 +206,14 @@ export default function App() {
         />
       </Drawer>
 
-      <Layout style={{ background: "#0d1117" }}>
+      <Layout style={{ background: "#f5f5f5" }}>
         <Header
           style={{
-            background: "#141b2d",
+            background: "#ffffff",
             padding: "0 16px",
             display: "flex",
             alignItems: "center",
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <Button
@@ -220,11 +221,10 @@ export default function App() {
             icon={<MenuOutlined />}
             onClick={() => setDrawerOpen(true)}
             className="mobile-menu-btn"
-            style={{ color: "#fff" }}
           />
           <span
             style={{
-              color: "#00b4d8",
+              color: "#1976d2",
               fontWeight: 800,
               fontSize: "1.2rem",
               marginLeft: 12,

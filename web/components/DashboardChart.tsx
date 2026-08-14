@@ -1,5 +1,5 @@
 import Chart from "react-apexcharts";
-import { Card } from "antd";
+import { Paper, Typography } from "@mui/material";
 import type { ApexOptions } from "apexcharts";
 
 interface DashboardChartProps {
@@ -18,10 +18,13 @@ export function DashboardChart({
   height = "300px",
 }: DashboardChartProps) {
   return (
-    <Card title={title} style={{ height: "100%" }}>
+    <Paper sx={{ p: 2, height: "100%" }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        {title}
+      </Typography>
       <div style={{ height }}>
         <Chart options={options} series={series} type={type} height="100%" width="100%" />
       </div>
-    </Card>
+    </Paper>
   );
 }

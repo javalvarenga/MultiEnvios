@@ -1,9 +1,9 @@
-/* Global overrides for Material Design light theme */
+/* Global overrides for light theme */
 
 body {
   margin: 0;
-  background-color: #f5f5f5;
-  color: #333333;
+  background-color: #f5f7fa;
+  color: #1a1a2e;
 }
 
 /* Hide mobile menu button on desktop, show on mobile */
@@ -22,20 +22,20 @@ body {
   width: 100% !important;
 }
 
-/* Scrollbar for light theme */
+/* Smooth scrollbar for light theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: #f0f0f0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c0c0c0;
+  background: #c4c4c4;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1976d2;
+  background: #00b4d8;
 }
