@@ -244,11 +244,11 @@ export function ShipmentForm() {
           {/* Formulario de captura de paquete */}
           <div
             style={{
-              border: "1px solid #2a2a4a",
+              border: "1px solid #e0e0e0",
               borderRadius: 8,
               padding: 16,
               marginBottom: 16,
-              background: "#141b2d",
+              background: "#fafafa",
             }}
           >
             <Row gutter={12} align="bottom">
