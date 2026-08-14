@@ -1,12 +1,13 @@
-import { Shipment } from '../models/types.js';
+import type { Shipment } from "../models/types.js";
+
+const shipments: Shipment[] = [];
 
 export const shipmentRepository = {
   create(shipment: Shipment): Shipment {
-    // Implementar lógica para crear una nueva remisión
+    shipments.push(shipment);
     return shipment;
   },
   findByUser(userId: string): Shipment[] {
-    // Implementar lógica para obtener todas las remisiones por usuario
-    return [];
-  }
+    return shipments.filter((s) => s.userId === userId);
+  },
 };
