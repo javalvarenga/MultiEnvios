@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth.js";
 import {
   createShipmentHandler,
   listShipmentsHandler,
@@ -7,6 +6,5 @@ import {
 
 export const shipmentRouter = Router();
 
-shipmentRouter.use(authMiddleware);
 shipmentRouter.post("/", createShipmentHandler);
 shipmentRouter.get("/", listShipmentsHandler);
