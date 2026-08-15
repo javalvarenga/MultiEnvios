@@ -13,6 +13,7 @@ import {
   Table,
   Popconfirm,
   App as AntApp,
+  Alert,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -22,22 +23,33 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
+import {
+  createShipment,
+  type PackageType,
+  type ShipmentResponse,
+} from "../api";
 
 const { Title, Paragraph, Text } = Typography;
 
 interface PackageItem {
   key: string;
-  type: string;
+  type: string; // Spanish label for display
   content: string;
   weight: number;
   quantity: number;
 }
 
 const PACKAGE_TYPE_OPTIONS = [
-  { value: "Paquete", label: "Paquete" },
-  { value: "Sobre", label: "Sobre" },
-  { value: "Otros", label: "Otros" },
+  { value: "Paquete", label: "Paquete", apiValue: "package" as PackageType },
+  { value: "Sobre", label: "Sobre", apiValue: "envelope" as PackageType },
+  { value: "Otros", label: "Otros", apiValue: "other" as PackageType },
 ];
+
+/** Maps the Spanish display label to the API's PackageType. */
+function mapPackageType(label: string): PackageType {
+  const found = PACKAGE_TYPE_OPTIONS.find((o) => o.value === label);
+  return found ? found.apiValue : "package";
+}
 
 let packageKeyCounter = 0;
 
@@ -47,6 +59,9 @@ export function ShipmentForm() {
 
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [createdShipment, setCreatedShipment] = useState<ShipmentResponse | null>(null);
 
   // Campos del formulario de paquete
   const [pkgType, setPkgType] = useState<string>("Paquete");
@@ -113,16 +128,45 @@ export function ShipmentForm() {
     }
   };
 
-  const handleSubmit = (values: unknown) => {
+  const handleSubmit = async (values: Record<string, unknown>) => {
     if (packages.length === 0) {
       message.error("Debe agregar al menos un paquete para generar la guía");
       return;
     }
-    console.log("Formulario enviado:", { ...values, packages });
-    message.success("Envío creado con éxito (simulado)");
-    form.resetFields();
-    setPackages([]);
-    resetPkgFields();
+
+    setSubmitting(true);
+    setSubmitError(null);
+    setCreatedShipment(null);
+
+    try {
+      const recipientName = String(values.recipient ?? "").trim();
+      const address = String(values.address ?? "").trim();
+
+      const payload = {
+        recipientName,
+        address,
+        packages: packages.map((p) => ({
+          type: mapPackageType(p.type),
+          content: p.content,
+          weight: p.weight,
+          quantity: p.quantity,
+        })),
+      };
+
+      const result = await createShipment(payload);
+      setCreatedShipment(result);
+      message.success("Envío creado con éxito");
+      form.resetFields();
+      setPackages([]);
+      resetPkgFields();
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Error desconocido al crear el envío";
+      setSubmitError(errorMsg);
+      message.error(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const packageColumns: ColumnsType<PackageItem> = [
@@ -183,6 +227,51 @@ export function ShipmentForm() {
           Complete los datos del destinatario para generar la guía
         </Paragraph>
       </div>
+
+      {submitError && (
+        <Alert
+          type="error"
+          message="Error al generar la guía"
+          description={submitError}
+          showIcon
+          closable
+          onClose={() => setSubmitError(null)}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
+      {createdShipment && (
+        <Alert
+          type="success"
+          message="Guía generada correctamente"
+          description={
+            <div>
+              <Text strong>ID: </Text>
+              <Text code>{createdShipment.id}</Text>
+              <br />
+              <Text strong>Estado: </Text>
+              <Text>{createdShipment.status}</Text>
+              <br />
+              <Text strong>Costo: </Text>
+              <Text>
+                {new Intl.NumberFormat("es-GT", {
+                  style: "currency",
+                  currency: "GTQ",
+                }).format(createdShipment.cost)}
+              </Text>
+              <br />
+              <Text strong>Fecha: </Text>
+              <Text>
+                {new Date(createdShipment.createdAt).toLocaleString("es-GT")}
+              </Text>
+            </div>
+          }
+          showIcon
+          closable
+          onClose={() => setCreatedShipment(null)}
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
       <Card>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -257,7 +346,10 @@ export function ShipmentForm() {
                 <Select
                   value={pkgType}
                   onChange={setPkgType}
-                  options={PACKAGE_TYPE_OPTIONS}
+                  options={PACKAGE_TYPE_OPTIONS.map((o) => ({
+                    value: o.value,
+                    label: o.label,
+                  }))}
                   style={{ width: "100%" }}
                 />
               </Col>
@@ -336,6 +428,7 @@ export function ShipmentForm() {
               htmlType="submit"
               icon={<SendOutlined />}
               size="large"
+              loading={submitting}
               disabled={packages.length === 0}
             >
               Generar Guía
