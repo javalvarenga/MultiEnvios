@@ -18,6 +18,9 @@ interface CourierConfig {
   description: string;
   status: "Activa" | "Inactiva";
   integration: string;
+  hostServicio: string;
+  urlGeneracion: string;
+  urlCancelacion: string;
 }
 
 const DUMMY_COURIERS: CourierConfig[] = [
@@ -28,6 +31,9 @@ const DUMMY_COURIERS: CourierConfig[] = [
     description: "Generación y anulación de guías de envío.",
     status: "Activa",
     integration: "Integración activa",
+    hostServicio: "https://api.cargoexpreso.com",
+    urlGeneracion: "/guias/generar",
+    urlCancelacion: "/guias/cancelar",
   },
   {
     id: "2",
@@ -36,6 +42,9 @@ const DUMMY_COURIERS: CourierConfig[] = [
     description: "Generación de guías y seguimiento de envíos.",
     status: "Activa",
     integration: "Integración activa",
+    hostServicio: "https://api.forzaexpress.com",
+    urlGeneracion: "/guias/generar",
+    urlCancelacion: "/guias/cancelar",
   },
   {
     id: "3",
@@ -44,6 +53,9 @@ const DUMMY_COURIERS: CourierConfig[] = [
     description: "Generación de guías de envío nacionales.",
     status: "Inactiva",
     integration: "Integración pendiente",
+    hostServicio: "",
+    urlGeneracion: "",
+    urlCancelacion: "",
   },
 ];
 

@@ -33,6 +33,9 @@ const DUMMY_COURIERS: CourierConfig[] = [
     codigoPobladoOrigen: "1963",
     direccionOrigen: "QUETZALTENANGO",
     telefonoOrigen: "58024372",
+    hostServicio: "https://api.cargoexpreso.com",
+    urlGeneracion: "/guias/generar",
+    urlCancelacion: "/guias/cancelar",
   },
   {
     key: "2",
@@ -49,6 +52,9 @@ const DUMMY_COURIERS: CourierConfig[] = [
     codigoPobladoOrigen: "1001",
     direccionOrigen: "GUATEMALA",
     telefonoOrigen: "55551234",
+    hostServicio: "https://api.forzaexpress.com",
+    urlGeneracion: "/guias/generar",
+    urlCancelacion: "/guias/cancelar",
   },
   {
     key: "3",
@@ -65,6 +71,9 @@ const DUMMY_COURIERS: CourierConfig[] = [
     codigoPobladoOrigen: "0901",
     direccionOrigen: "MIXCO",
     telefonoOrigen: "55559876",
+    hostServicio: "",
+    urlGeneracion: "",
+    urlCancelacion: "",
   },
 ];
 

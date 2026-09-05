@@ -113,7 +113,7 @@ export function ShipmentForm() {
     }
   };
 
-  const handleSubmit = (values: unknown) => {
+  const handleSubmit = (values: Record<string, unknown>) => {
     if (packages.length === 0) {
       message.error("Debe agregar al menos un paquete para generar la guía");
       return;
