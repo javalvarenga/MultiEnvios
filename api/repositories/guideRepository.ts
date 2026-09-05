@@ -13,4 +13,9 @@ export const guideRepository = {
   findByUser(userId: string): Guide[] {
     return guides.filter((g) => g.userId === userId);
   },
+  update(guide: Guide): Guide {
+    const index = guides.findIndex((g) => g.id === guide.id);
+    if (index !== -1) guides[index] = guide;
+    return guide;
+  },
 };

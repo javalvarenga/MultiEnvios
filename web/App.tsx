@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   Layout,
   Button,
@@ -10,6 +10,7 @@ import {
   Space,
   Dropdown,
   Avatar,
+  App as AntApp,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -26,66 +27,51 @@ import { Reports } from "./components/Reports";
 import { ConfigScreen } from "./components/ConfigScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { getToken, getUser, logout } from "./auth";
+import { fetchGuides, cancelGuide, type GuideRecord } from "./api";
 
 const { Sider, Header, Content } = Layout;
 const { Title, Paragraph } = Typography;
 
-interface ShipmentRecord {
-  key: string;
-  trackingNumber: string;
-  recipient: string;
-  status: "delivered" | "in_transit" | "pending" | "returned";
-  amount: number;
-  date: string;
-}
-
-const STATUS_CONFIG: Record<
-  ShipmentRecord["status"],
-  { label: string; color: string }
-> = {
-  delivered: { label: "Entregado", color: "green" },
-  in_transit: { label: "En Tránsito", color: "blue" },
-  pending: { label: "Pendiente", color: "orange" },
-  returned: { label: "Devuelto", color: "red" },
-};
-
-const DUMMY_SHIPMENTS: ShipmentRecord[] = [
-  {
-    key: "1",
-    trackingNumber: "CE-2026-00128",
-    recipient: "María López",
-    status: "in_transit",
-    amount: 125.0,
-    date: "2026-07-09",
-  },
-  {
-    key: "2",
-    trackingNumber: "CE-2026-00127",
-    recipient: "Carlos Ruiz",
-    status: "delivered",
-    amount: 89.5,
-    date: "2026-07-09",
-  },
-  {
-    key: "3",
-    trackingNumber: "CE-2026-00126",
-    recipient: "Ana Morales",
-    status: "pending",
-    amount: 210.0,
-    date: "2026-07-08",
-  },
-  {
-    key: "4",
-    trackingNumber: "CE-2026-00125",
-    recipient: "Luis Hernández",
-    status: "returned",
-    amount: 45.0,
-    date: "2026-07-07",
-  },
-];
-
 function ShipmentsHistory() {
-  const columns: ColumnsType<ShipmentRecord> = [
+  const { message } = AntApp.useApp();
+  const [guides, setGuides] = useState<GuideRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchGuides()
+      .then((data) => {
+        if (active) setGuides(data);
+      })
+      .catch(() => {
+        if (active) message.error("No se pudieron cargar las guías");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [message]);
+
+  const handleCancel = async (id: string) => {
+    setCancellingId(id);
+    try {
+      const updated = await cancelGuide(id);
+      setGuides((prev) =>
+        prev.map((g) => (g.id === id ? { ...g, isCancelled: updated.isCancelled } : g)),
+      );
+      message.success("Guía anulada correctamente");
+    } catch {
+      message.error("No se pudo anular la guía");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const columns: ColumnsType<GuideRecord> = [
     {
       title: "Nº Guía",
       dataIndex: "trackingNumber",
@@ -98,22 +84,28 @@ function ShipmentsHistory() {
     },
     {
       title: "Destinatario",
-      dataIndex: "recipient",
       key: "recipient",
+      render: (_: unknown, record: GuideRecord) => record.recipient.name,
+    },
+    {
+      title: "Courier",
+      dataIndex: "courier",
+      key: "courier",
     },
     {
       title: "Estado",
-      dataIndex: "status",
       key: "status",
-      render: (status: ShipmentRecord["status"]) => {
-        const config = STATUS_CONFIG[status];
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
+      render: (_: unknown, record: GuideRecord) =>
+        record.isCancelled ? (
+          <Tag color="red">Anulada</Tag>
+        ) : (
+          <Tag color="blue">{record.status}</Tag>
+        ),
     },
     {
       title: "Monto",
-      dataIndex: "amount",
-      key: "amount",
+      dataIndex: "cost",
+      key: "cost",
       render: (amount: number) =>
         new Intl.NumberFormat("es-GT", {
           style: "currency",
@@ -122,16 +114,28 @@ function ShipmentsHistory() {
     },
     {
       title: "Fecha",
-      dataIndex: "date",
-      key: "date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (value: string) => new Date(value).toLocaleDateString("es-GT"),
     },
     {
       title: "Acciones",
       key: "actions",
-      render: () => (
+      render: (_: unknown, record: GuideRecord) => (
         <Space>
           <Button type="text" size="small" icon={<EyeOutlined />} />
           <Button type="text" size="small" icon={<PrinterOutlined />} />
+          {!record.isCancelled && (
+            <Button
+              type="text"
+              size="small"
+              danger
+              loading={cancellingId === record.id}
+              onClick={() => handleCancel(record.id)}
+            >
+              Anular
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -144,13 +148,15 @@ function ShipmentsHistory() {
           Historial de Envíos
         </Title>
         <Paragraph type="secondary">
-          Listado completo de guías generadas (Modo Simulación)
+          Listado completo de guías generadas
         </Paragraph>
       </div>
       <Card>
-        <Table<ShipmentRecord>
+        <Table<GuideRecord>
           columns={columns}
-          dataSource={DUMMY_SHIPMENTS}
+          dataSource={guides}
+          rowKey="id"
+          loading={loading}
           pagination={{ pageSize: 10 }}
           scroll={{ x: 600 }}
         />
