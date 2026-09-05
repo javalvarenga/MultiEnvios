@@ -66,22 +66,3 @@ export interface GuideRecord {
   createdAt: string;
   isCancelled: boolean;
 }
-
-export async function fetchGuides(): Promise<GuideRecord[]> {
-  const token = getToken();
-  const res = await fetch("/api/guides", {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-  if (!res.ok) throw new Error("No se pudieron cargar las guías");
-  return res.json();
-}
-
-export async function cancelGuide(id: string): Promise<GuideRecord> {
-  const token = getToken();
-  const res = await fetch(`/api/guides/${id}/cancel`, {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-  if (!res.ok) throw new Error("No se pudo anular la guía");
-  return res.json();
-}

@@ -22,6 +22,8 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
+import { createGuide } from "../guidesStorage";
+import type { GuideRecipient, GuideParcel } from "../api";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -118,8 +120,35 @@ export function ShipmentForm() {
       message.error("Debe agregar al menos un paquete para generar la guía");
       return;
     }
-    console.log("Formulario enviado:", { ...values, packages });
-    message.success("Envío creado con éxito (simulado)");
+    const totalWeight = packages.reduce((sum, p) => sum + p.weight, 0);
+    const totalQuantity = packages.reduce((sum, p) => sum + p.quantity, 0);
+    const reference = [values.reference1, values.reference2]
+      .filter(Boolean)
+      .join(" · ");
+    const recipient: GuideRecipient = {
+      name: String(values.recipient ?? ""),
+      phone: String(values.phone ?? ""),
+      department: "",
+      municipality: "",
+      address: String(values.address ?? ""),
+      reference: reference || undefined,
+    };
+    const parcel: GuideParcel = {
+      description: packages.map((p) => p.content).join(", "),
+      quantity: totalQuantity,
+      codAmount: 0,
+      weight: totalWeight,
+      type: packages[0]?.type ?? "Paquete",
+    };
+    const guide = createGuide({
+      courier: "Cargo Expreso",
+      recipient,
+      parcel,
+      status: "Pendiente",
+      cost: 0,
+    });
+    console.log("Guía generada:", guide);
+    message.success(`Guía ${guide.trackingNumber} creada con éxito`);
     form.resetFields();
     setPackages([]);
     resetPkgFields();
