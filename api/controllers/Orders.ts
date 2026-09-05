@@ -11,12 +11,10 @@ import type { Guide } from "../models/types.js";
  *
  * @param _sql  SQL original del ejemplo (ignorado en memoria).
  * @param params `[orderId, guideNumber, typeOfService]`.
- * @param _tenantSchema  Reservado para multi-tenant.
  */
 export async function assignGuides(
   _sql: string,
   params: [string, string, number],
-  _tenantSchema?: string,
 ): Promise<Guide | null> {
   const [orderId, guideNumber, typeOfService] = params;
   const guide = guideRepository.findById(orderId);
