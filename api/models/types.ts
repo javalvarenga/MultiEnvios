@@ -70,4 +70,5 @@ export interface Guide {
   cost: number;
   pdf: Buffer;
   createdAt: string;
+  isCancelled: boolean;
 }

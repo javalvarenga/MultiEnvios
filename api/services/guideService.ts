@@ -42,6 +42,7 @@ export function createGuide(userId: string, input: GuideInput): Guide {
     cost: GUIDE_COST,
     pdf: Buffer.alloc(0),
     createdAt: new Date().toISOString(),
+    isCancelled: false,
   };
 
   const pdf = generateGuidePdf(guide);
@@ -57,6 +58,15 @@ export function getGuide(id: string): Guide | undefined {
 
 export function listGuides(userId: string): Guide[] {
   return guideRepository.findByUser(userId);
+}
+
+export function cancelGuide(id: string, userId: string): Guide | undefined {
+  const guide = guideRepository.findById(id);
+  if (!guide || guide.userId !== userId) return undefined;
+  if (guide.isCancelled) return guide;
+  guide.isCancelled = true;
+  guideRepository.update(guide);
+  return guide;
 }
 
 export function isValidCourier(courier: string): courier is CourierType {

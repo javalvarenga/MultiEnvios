@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthedRequest } from "../middleware/auth.js";
-import { createGuide, getGuide, listGuides, isValidCourier } from "../services/guideService.js";
+import { createGuide, getGuide, listGuides, cancelGuide, isValidCourier } from "../services/guideService.js";
 import type { Guide, GuideInput } from "../models/types.js";
 
 type SafeGuide = Omit<Guide, "pdf"> & { pdfSize: number };
@@ -123,4 +123,13 @@ export function getGuideHandler(req: AuthedRequest, res: Response): void {
 export function listGuidesHandler(req: AuthedRequest, res: Response): void {
   const guides = listGuides(req.userId!);
   res.json(guides.map(toSafeGuide));
+}
+
+export function cancelGuideHandler(req: AuthedRequest, res: Response): void {
+  const guide = cancelGuide(req.params.id, req.userId!);
+  if (!guide) {
+    res.status(404).json({ error: "Guia no encontrada" });
+    return;
+  }
+  res.status(200).json(toSafeGuide(guide));
 }
