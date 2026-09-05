@@ -42,13 +42,11 @@ interface CaexConfig {
 }
 
 /**
- * Resuelve la configuracion de CAEX: prioriza IntegrationSettings del tenant y
- * cae a las variables de entorno cuando no hay fila o campos faltantes.
+ * Resuelve la configuracion de CAEX: prioriza la integracion guardada y cae a
+ * las variables de entorno cuando no hay fila o campos faltantes.
  */
-export const resolveCaexConfig = async (
-  tenantSchema?: string,
-): Promise<CaexConfig> => {
-  const integration = getIntegrationRaw("caex", tenantSchema);
+export const resolveCaexConfig = async (): Promise<CaexConfig> => {
+  const integration = getIntegrationRaw("caex");
 
   // Si existe la fila y esta explicitamente desactivada, bloquear.
   if (integration && integration.isEnabled === false) {
@@ -194,9 +192,8 @@ const generateCancelGuideXML = (
 
 export const createGuide = async (
   details: GuideDetails,
-  tenantSchema?: string,
 ): Promise<{ result: unknown; generateGuide: string }> => {
-  const config = await resolveCaexConfig(tenantSchema);
+  const config = await resolveCaexConfig();
   const xmlContent = generateGuideXML(
     details.orderId,
     details.customerName,
@@ -243,7 +240,6 @@ export const createGuide = async (
     await assignGuides(
       "CALL CT_Orders_AssignGuides(?)",
       [details?.orderId, generateGuide, typeOfService],
-      tenantSchema,
     );
     return { result, generateGuide };
   } catch (error) {
@@ -254,9 +250,8 @@ export const createGuide = async (
 
 export const cancelGuide = async (
   details: { guideId: string; orderId: string },
-  tenantSchema?: string,
 ): Promise<{ success: boolean }> => {
-  const config = await resolveCaexConfig(tenantSchema);
+  const config = await resolveCaexConfig();
   const xmlContent = generateCancelGuideXML(details.guideId, config);
 
   try {
@@ -299,7 +294,6 @@ export const cancelGuide = async (
     await assignGuides(
       "CALL CT_Orders_AssignGuides(?)",
       [details?.orderId, "", 0],
-      tenantSchema,
     );
 
     return { success: true };
