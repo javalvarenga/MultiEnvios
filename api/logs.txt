@@ -1,0 +1,2 @@
+[2026-09-05T04:43:18.542Z] Guia local creada: CE-2026-4C64C991 (id=0216eda5-9645-4bd5-a847-e4b223df097b)
+[2026-09-05T04:43:18.547Z] Guia CAEX generada (mock): 12345678
