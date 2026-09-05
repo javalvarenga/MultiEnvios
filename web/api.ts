@@ -1,3 +1,5 @@
+import { getToken } from "./auth";
+
 export interface DashboardStats {
   totalShipments: number;
   balance: number;
@@ -26,7 +28,10 @@ export interface DashboardData {
 }
 
 export async function fetchDashboard(): Promise<DashboardData> {
-  const res = await fetch("/api/dashboard/stats");
+  const token = getToken();
+  const res = await fetch("/api/dashboard/stats", {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
   if (!res.ok) throw new Error("No se pudieron cargar los datos del dashboard");
   return res.json();
 }

@@ -8,18 +8,24 @@ import {
   Typography,
   Card,
   Space,
+  Dropdown,
+  Avatar,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
   MenuOutlined,
   EyeOutlined,
   PrinterOutlined,
+  UserOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Dashboard } from "./components/Dashboard";
 import { Sidebar, type MenuPath } from "./components/Sidebar";
 import { ShipmentForm } from "./components/ShipmentForm";
 import { Reports } from "./components/Reports";
 import { ConfigScreen } from "./components/ConfigScreen";
+import { LoginScreen } from "./components/LoginScreen";
+import { getToken, getUser, logout } from "./auth";
 
 const { Sider, Header, Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -154,8 +160,15 @@ function ShipmentsHistory() {
 }
 
 export default function App() {
+  const [authenticated, setAuthenticated] = useState<boolean>(() => !!getToken());
   const [path, setPath] = useState<MenuPath>("/dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setAuthenticated(false);
+    setPath("/dashboard");
+  };
 
   let content: ReactNode;
   switch (path) {
@@ -176,6 +189,12 @@ export default function App() {
       break;
     default:
       content = <Dashboard />;
+  }
+
+  const user = getUser();
+
+  if (!authenticated) {
+    return <LoginScreen onLogin={() => setAuthenticated(true)} />;
   }
 
   return (
@@ -232,6 +251,27 @@ export default function App() {
           >
             MULTIENVÍOS GT
           </span>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "logout",
+                    icon: <LogoutOutlined />,
+                    label: "Cerrar sesión",
+                    onClick: handleLogout,
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
+              <Button type="text" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: "#1976d2" }} />
+                <span style={{ fontSize: 14 }}>{user?.name ?? "Usuario"}</span>
+                <LogoutOutlined />
+              </Button>
+            </Dropdown>
+          </div>
         </Header>
         <Content style={{ padding: 24 }}>{content}</Content>
       </Layout>

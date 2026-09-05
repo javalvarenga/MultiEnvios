@@ -4,6 +4,7 @@ import DashboardScreen from "../screens/DashboardScreen";
 import ShipmentFormScreen from "../screens/ShipmentFormScreen";
 import ReportsScreen from "../screens/ReportsScreen";
 import ConfigScreen from "../screens/ConfigScreen";
+import { LogoutButton } from "../components/LogoutButton";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -16,6 +17,7 @@ export function MainTabs() {
         headerTitleAlign: "center",
         headerTintColor: "#1976d2",
         headerTitleStyle: { fontWeight: "800" },
+        headerRight: () => <LogoutButton />,
       }}
     >
       <Tab.Screen
