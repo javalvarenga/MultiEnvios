@@ -23,6 +23,9 @@ export interface CourierConfig {
   codigoPobladoOrigen: string;
   direccionOrigen: string;
   telefonoOrigen: string;
+  hostServicio: string;
+  urlGeneracion: string;
+  urlCancelacion: string;
 }
 
 interface EditCourierModalProps {
@@ -108,6 +111,15 @@ export function EditCourierModal({
         </Form.Item>
         <Form.Item name="telefonoOrigen" label="Teléfono origen">
           <Input />
+        </Form.Item>
+        <Form.Item name="hostServicio" label="Host del servicio">
+          <Input placeholder="https://api.courier.com" />
+        </Form.Item>
+        <Form.Item name="urlGeneracion" label="URL servicio de generación">
+          <Input placeholder="/guias/generar" />
+        </Form.Item>
+        <Form.Item name="urlCancelacion" label="URL servicio de cancelación">
+          <Input placeholder="/guias/cancelar" />
         </Form.Item>
       </Form>
     </Modal>
