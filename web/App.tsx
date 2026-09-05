@@ -27,7 +27,8 @@ import { Reports } from "./components/Reports";
 import { ConfigScreen } from "./components/ConfigScreen";
 import { LoginScreen } from "./components/LoginScreen";
 import { getToken, getUser, logout } from "./auth";
-import { fetchGuides, cancelGuide, type GuideRecord } from "./api";
+import type { GuideRecord } from "./api";
+import { getGuides, cancelGuide } from "./guidesStorage";
 
 const { Sider, Header, Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -39,31 +40,22 @@ function ShipmentsHistory() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    fetchGuides()
-      .then((data) => {
-        if (active) setGuides(data);
-      })
-      .catch(() => {
-        if (active) message.error("No se pudieron cargar las guías");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [message]);
+    setGuides(getGuides());
+    setLoading(false);
+  }, []);
 
-  const handleCancel = async (id: string) => {
+  const handleCancel = (id: string) => {
     setCancellingId(id);
     try {
-      const updated = await cancelGuide(id);
-      setGuides((prev) =>
-        prev.map((g) => (g.id === id ? { ...g, isCancelled: updated.isCancelled } : g)),
-      );
-      message.success("Guía anulada correctamente");
+      const updated = cancelGuide(id);
+      if (updated) {
+        setGuides((prev) =>
+          prev.map((g) => (g.id === id ? { ...g, isCancelled: true, status: "Anulada" } : g)),
+        );
+        message.success("Guía anulada correctamente");
+      } else {
+        message.error("No se pudo anular la guía");
+      }
     } catch {
       message.error("No se pudo anular la guía");
     } finally {
