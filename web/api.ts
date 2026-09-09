@@ -58,6 +58,7 @@ export interface GuideRecord {
   userId: string;
   trackingNumber: string;
   courier: string;
+  courierId: number;
   recipient: GuideRecipient;
   parcel: GuideParcel;
   status: string;
