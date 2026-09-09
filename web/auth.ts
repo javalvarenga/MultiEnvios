@@ -68,44 +68,28 @@ export function clearSession(): void {
 }
 
 /**
- * Autentica al usuario contra el endpoint POST /api/auth/login.
- * Almacena el JWT recibido en localStorage.
- * Si el backend no está disponible y las credenciales coinciden con las
- * por defecto, crea una sesión demo local para que el login funcione
- * también offline.
+ * Autentica al usuario contra credenciales hardcodeadas (login local).
+ * No realiza ninguna llamada HTTP al backend.
+ * Si las credenciales coinciden, crea una sesión demo y la persiste
+ * en localStorage. En caso contrario lanza un error descriptivo.
  */
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(credentials),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      throw new Error(data?.error ?? "Credenciales inválidas");
-    }
-    const auth = (await res.json()) as AuthResponse;
-    setSession(auth);
-    return auth;
-  } catch (err) {
-    // Fallback de login por defecto: si el backend no responde y las
-    // credenciales son las demo, se persiste una sesión local.
-    const isNetworkError =
-      err instanceof TypeError && err.message.includes("fetch");
-    const isDefaultCredentials =
-      credentials.email.trim().toLowerCase() === DEFAULT_EMAIL &&
-      credentials.password === DEFAULT_PASSWORD;
-    if (isNetworkError && isDefaultCredentials) {
-      const demoAuth: AuthResponse = {
-        token: `demo-token-${Date.now()}`,
-        user: DEFAULT_USER,
-      };
-      setSession(demoAuth);
-      return demoAuth;
-    }
-    throw err;
+  const emailMatch =
+    credentials.email.trim().toLowerCase() === DEFAULT_EMAIL;
+  const passwordMatch = credentials.password === DEFAULT_PASSWORD;
+
+  if (!emailMatch || !passwordMatch) {
+    throw new Error(
+      "Credenciales inválidas. Use el usuario demo: demo@multienvios.gt / demo123",
+    );
   }
+
+  const auth: AuthResponse = {
+    token: `demo-token-${Date.now()}`,
+    user: DEFAULT_USER,
+  };
+  setSession(auth);
+  return auth;
 }
 
 /** Cierra sesión eliminando los datos locales. */
