@@ -26,7 +26,7 @@ import { ShipmentForm } from "./components/ShipmentForm";
 import { Reports } from "./components/Reports";
 import { ConfigScreen } from "./components/ConfigScreen";
 import { LoginScreen } from "./components/LoginScreen";
-import { getToken, getUser, logout } from "./auth";
+import { getToken, getUser, getUserId, logout } from "./auth";
 import type { GuideRecord } from "./api";
 import { getGuides, cancelGuide } from "./guidesStorage";
 
@@ -158,7 +158,12 @@ function ShipmentsHistory() {
 }
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState<boolean>(() => !!getToken());
+  // Inicializa la autenticación leyendo las variables de acceso desde
+  // localStorage (token y userId). Si falta alguno, se considera no
+  // autenticado y se fuerza el login.
+  const [authenticated, setAuthenticated] = useState<boolean>(
+    () => !!getToken() && !!getUserId(),
+  );
   const [path, setPath] = useState<MenuPath>("/dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
