@@ -8,8 +8,8 @@ export interface AuthResult {
   user: Omit<User, 'password'>;
 }
 
-export function login(email: string, password: string): AuthResult | null {
-  const user = userRepository.findByEmail(email);
+export async function login(email: string, password: string): Promise<AuthResult | null> {
+  const user = await userRepository.findByEmail(email);
   if (!user || user.password !== password) return null;
 
   const token = jwt.sign({ sub: user.id }, config.jwtSecret, {

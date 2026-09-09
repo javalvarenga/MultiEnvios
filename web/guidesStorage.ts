@@ -1,31 +1,31 @@
 import type { GuideRecord, GuideRecipient, GuideParcel } from "./api";
-import { getUser } from "./auth";
+import {
+  fetchGuides,
+  createGuideApi,
+  cancelGuideApi,
+  deleteGuideApi,
+  type GuideCreateInput,
+} from "./api";
 
-const GUIDES_KEY = "multienvios_guides";
+/**
+ * Capa de persistencia de guías basada en la API.
+ *
+ * Sustituye al anterior almacenamiento en localStorage: ahora las
+ * operaciones de lectura, creación y borrado se realizan contra los
+ * endpoints REST del backend (`/api/guides`).
+ */
 
-/** Lee todas las guías almacenadas en localStorage (más recientes primero). */
-export function getGuides(): GuideRecord[] {
-  const raw = localStorage.getItem(GUIDES_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as GuideRecord[];
-    return Array.isArray(parsed)
-      ? parsed.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        )
-      : [];
-  } catch {
-    return [];
-  }
+/** Lee todas las guías del usuario autenticado (más recientes primero). */
+export async function getGuides(): Promise<GuideRecord[]> {
+  const guides = await fetchGuides();
+  return guides.sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 }
 
-function persist(guides: GuideRecord[]): void {
-  localStorage.setItem(GUIDES_KEY, JSON.stringify(guides));
-}
-
-/** Crea una nueva guía a partir de los datos del formulario y la guarda en localStorage. */
-export function createGuide(input: {
+/** Crea una nueva guía a partir de los datos del formulario vía API. */
+export async function createGuide(input: {
   courier: string;
   courierId?: number;
   recipient: GuideRecipient;
@@ -33,61 +33,29 @@ export function createGuide(input: {
   status?: string;
   cost?: number;
   pdfSize?: number;
-}): GuideRecord {
-  const user = getUser();
-  const now = new Date();
-  const guide: GuideRecord = {
-    id:
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `guide-${Date.now()}`,
-    userId: user?.id ?? "local",
-    trackingNumber: `ME-${now.getFullYear()}-${String(now.getTime()).slice(-6)}`,
+}): Promise<GuideRecord> {
+  const payload: GuideCreateInput = {
     courier: input.courier,
-    courierId: input.courierId ?? 1,
+    courierId: input.courierId,
     recipient: input.recipient,
     parcel: input.parcel,
-    status: input.status ?? "Pendiente",
-    cost: input.cost ?? 0,
-    pdfSize: input.pdfSize ?? 0,
-    createdAt: now.toISOString(),
-    isCancelled: false,
   };
-  const guides = getGuides();
-  guides.unshift(guide);
-  persist(guides);
-  return guide;
+  return createGuideApi(payload);
 }
 
-/** Actualiza los campos de una guía existente. Devuelve la guía actualizada o null. */
-export function updateGuide(
-  id: string,
-  patch: Partial<GuideRecord>,
-): GuideRecord | null {
-  const guides = getGuides();
-  const index = guides.findIndex((g) => g.id === id);
-  if (index === -1) return null;
-  const updated = { ...guides[index], ...patch, id: guides[index].id };
-  guides[index] = updated;
-  persist(guides);
-  return updated;
-}
-
-/** Cambia el estado de una guía. Devuelve la guía actualizada o null. */
-export function setGuideStatus(
-  id: string,
-  status: string,
-): GuideRecord | null {
-  return updateGuide(id, { status });
-}
-
-/** Anula una guía (isCancelled = true, status = "Anulada"). Devuelve la guía actualizada o null. */
-export function cancelGuide(id: string): GuideRecord | null {
-  return updateGuide(id, { isCancelled: true, status: "Anulada" });
+/**
+ * Anula una guía (isCancelled = true, status = "Anulada").
+ * Devuelve la guía actualizada o null si no existe.
+ */
+export async function cancelGuide(id: string): Promise<GuideRecord | null> {
+  try {
+    return await cancelGuideApi(id);
+  } catch {
+    return null;
+  }
 }
 
 /** Elimina una guía por id. */
-export function deleteGuide(id: string): void {
-  const guides = getGuides().filter((g) => g.id !== id);
-  persist(guides);
+export async function deleteGuide(id: string): Promise<void> {
+  await deleteGuideApi(id);
 }

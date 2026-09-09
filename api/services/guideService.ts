@@ -27,7 +27,7 @@ function buildTrackingNumber(courier: CourierType): string {
   return `${prefix}-${year}-${random}`;
 }
 
-export function createGuide(userId: string, input: GuideInput): Guide {
+export async function createGuide(userId: string, input: GuideInput): Promise<Guide> {
   const recipient: GuideRecipient = { ...input.recipient };
   const parcel: GuideParcel = { ...input.parcel };
 
@@ -49,25 +49,35 @@ export function createGuide(userId: string, input: GuideInput): Guide {
   const pdf = generateGuidePdf(guide);
   guide.pdf = pdf;
 
-  userRepository.updateBalance(userId, -GUIDE_COST);
+  await userRepository.updateBalance(userId, -GUIDE_COST);
   return guideRepository.create(guide);
 }
 
-export function getGuide(id: string): Guide | undefined {
+export async function getGuide(id: string): Promise<Guide | undefined> {
   return guideRepository.findById(id);
 }
 
-export function listGuides(userId: string): Guide[] {
+export async function listGuides(userId: string): Promise<Guide[]> {
   return guideRepository.findByUser(userId);
 }
 
-export function cancelGuide(id: string, userId: string): Guide | undefined {
-  const guide = guideRepository.findById(id);
+export async function cancelGuide(
+  id: string,
+  userId: string,
+): Promise<Guide | undefined> {
+  const guide = await guideRepository.findById(id);
   if (!guide || guide.userId !== userId) return undefined;
   if (guide.isCancelled) return guide;
   guide.isCancelled = true;
-  guideRepository.update(guide);
-  return guide;
+  guide.status = "cancelled";
+  return guideRepository.update(guide);
+}
+
+export async function deleteGuide(
+  id: string,
+  userId: string,
+): Promise<boolean> {
+  return guideRepository.deleteById(id, userId);
 }
 
 export function isValidCourier(courier: string): courier is CourierType {

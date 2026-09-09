@@ -1,15 +1,12 @@
+import { pool } from "../db/client.js";
 import { guideRepository } from "../repositories/guideRepository.js";
 import type { Guide } from "../models/types.js";
 
 /**
- * Persiste la guia generada/cancelada contra el courier.
+ * Persiste la guia generada/cancelada contra el courier invocando el stored
+ * procedure MySQL `CT_Orders_AssignGuides`.
  *
- * En el ejemplo original se invoca un stored procedure MySQL
- * (`CT_Orders_AssignGuides`); aqui el proyecto aun opera con repositorios en
- * memoria, por lo que la asignacion se traduce a actualizar el estado de la
- * guia. La firma se mantiene estable para una futura migracion a DB.
- *
- * @param _sql  SQL original del ejemplo (ignorado en memoria).
+ * @param _sql  SQL original del ejemplo (ignorado; se usa el SP fijo).
  * @param params `[orderId, guideNumber, typeOfService]`.
  */
 export async function assignGuides(
@@ -17,10 +14,20 @@ export async function assignGuides(
   params: [string, string, number],
 ): Promise<Guide | null> {
   const [orderId, guideNumber, typeOfService] = params;
-  const guide = guideRepository.findById(orderId);
+  const guide = await guideRepository.findById(orderId);
   if (!guide) return null;
 
-  guide.trackingNumber = guideNumber || guide.trackingNumber;
-  guide.status = typeOfService === 0 ? "cancelled" : "created";
+  await pool.query("CALL CT_Orders_AssignGuides(?, ?, ?)", [
+    orderId,
+    guideNumber ?? "",
+    typeOfService,
+  ]);
+
+  if (typeOfService === 0) {
+    guide.status = "cancelled";
+  } else {
+    guide.trackingNumber = guideNumber || guide.trackingNumber;
+    guide.status = "created";
+  }
   return guide;
 }

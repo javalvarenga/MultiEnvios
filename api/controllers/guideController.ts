@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthedRequest } from "../middleware/auth.js";
-import { createGuide, getGuide, listGuides, cancelGuide, isValidCourier } from "../services/guideService.js";
+import { createGuide, getGuide, listGuides, cancelGuide, deleteGuide, isValidCourier } from "../services/guideService.js";
 import type { Guide, GuideInput } from "../models/types.js";
 
 type SafeGuide = Omit<Guide, "pdf"> & { pdfSize: number };
@@ -10,7 +10,7 @@ function toSafeGuide(guide: Guide): SafeGuide {
   return { ...rest, pdfSize: guide.pdf.length };
 }
 
-export function createGuideHandler(req: AuthedRequest, res: Response): void {
+export async function createGuideHandler(req: AuthedRequest, res: Response): Promise<void> {
   const { courier, courierId, recipient, parcel } = (req.body ?? {}) as Partial<GuideInput>;
 
   if (!courier || typeof courier !== "string" || !isValidCourier(courier)) {
@@ -84,53 +84,87 @@ export function createGuideHandler(req: AuthedRequest, res: Response): void {
     return;
   }
 
-  const guide = createGuide(req.userId!, {
-    courier,
-    courierId: typeof courierId === "number" ? courierId : 1,
-    recipient: { name, phone, department, municipality, address, reference },
-    parcel: { description, quantity, codAmount, weight, type },
-  });
+  try {
+    const guide = await createGuide(req.userId!, {
+      courier,
+      courierId: typeof courierId === "number" ? courierId : 1,
+      recipient: { name, phone, department, municipality, address, reference },
+      parcel: { description, quantity, codAmount, weight, type },
+    });
 
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="guide-${guide.trackingNumber}.pdf"`,
-  );
-  res.setHeader("X-Guide-Id", guide.id);
-  res.status(201).send(guide.pdf);
-}
-
-export function getGuideHandler(req: AuthedRequest, res: Response): void {
-  const guide = getGuide(req.params.id);
-  if (!guide || guide.userId !== req.userId) {
-    res.status(404).json({ error: "Guia no encontrada" });
-    return;
-  }
-
-  const accept = req.headers.accept ?? "";
-  if (accept.includes("application/pdf")) {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="guide-${guide.trackingNumber}.pdf"`,
     );
-    res.status(200).send(guide.pdf);
-    return;
+    res.setHeader("X-Guide-Id", guide.id);
+    res.status(201).send(guide.pdf);
+  } catch (err) {
+    console.error("createGuide error:", err);
+    res.status(500).json({ error: "Error al crear la guia" });
   }
-
-  res.json(toSafeGuide(guide));
 }
 
-export function listGuidesHandler(req: AuthedRequest, res: Response): void {
-  const guides = listGuides(req.userId!);
-  res.json(guides.map(toSafeGuide));
+export async function getGuideHandler(req: AuthedRequest, res: Response): Promise<void> {
+  try {
+    const guide = await getGuide(req.params.id);
+    if (!guide || guide.userId !== req.userId) {
+      res.status(404).json({ error: "Guia no encontrada" });
+      return;
+    }
+
+    const accept = req.headers.accept ?? "";
+    if (accept.includes("application/pdf")) {
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="guide-${guide.trackingNumber}.pdf"`,
+      );
+      res.status(200).send(guide.pdf);
+      return;
+    }
+
+    res.json(toSafeGuide(guide));
+  } catch (err) {
+    console.error("getGuide error:", err);
+    res.status(500).json({ error: "Error al obtener la guia" });
+  }
 }
 
-export function cancelGuideHandler(req: AuthedRequest, res: Response): void {
-  const guide = cancelGuide(req.params.id, req.userId!);
-  if (!guide) {
-    res.status(404).json({ error: "Guia no encontrada" });
-    return;
+export async function listGuidesHandler(req: AuthedRequest, res: Response): Promise<void> {
+  try {
+    const guides = await listGuides(req.userId!);
+    res.json(guides.map(toSafeGuide));
+  } catch (err) {
+    console.error("listGuides error:", err);
+    res.status(500).json({ error: "Error al listar las guias" });
   }
-  res.status(200).json(toSafeGuide(guide));
+}
+
+export async function cancelGuideHandler(req: AuthedRequest, res: Response): Promise<void> {
+  try {
+    const guide = await cancelGuide(req.params.id, req.userId!);
+    if (!guide) {
+      res.status(404).json({ error: "Guia no encontrada" });
+      return;
+    }
+    res.status(200).json(toSafeGuide(guide));
+  } catch (err) {
+    console.error("cancelGuide error:", err);
+    res.status(500).json({ error: "Error al cancelar la guia" });
+  }
+}
+
+export async function deleteGuideHandler(req: AuthedRequest, res: Response): Promise<void> {
+  try {
+    const deleted = await deleteGuide(req.params.id, req.userId!);
+    if (!deleted) {
+      res.status(404).json({ error: "Guia no encontrada" });
+      return;
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error("deleteGuide error:", err);
+    res.status(500).json({ error: "Error al eliminar la guia" });
+  }
 }

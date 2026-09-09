@@ -19,31 +19,23 @@ const TOKEN_KEY = "multienvios_token";
 const USER_KEY = "multienvios_user";
 const USER_ID_KEY = "multienvios_user_id";
 
-/** Credenciales y usuario demo por defecto (login por defecto). */
-const DEFAULT_EMAIL = "demo@multienvios.gt";
-const DEFAULT_PASSWORD = "demo123";
-const DEFAULT_USER: AuthUser = {
-  id: "u1",
-  email: DEFAULT_EMAIL,
-  name: "Demo",
-  balance: 500,
-};
+const AUTH_ENDPOINT = "/api/auth/login";
 
-/** Guarda el token JWT, el usuario y el userId en localStorage. */
+/** Guarda el token JWT, el usuario y el userId en sessionStorage. */
 export function setSession(auth: AuthResponse): void {
-  localStorage.setItem(TOKEN_KEY, auth.token);
-  localStorage.setItem(USER_KEY, JSON.stringify(auth.user));
-  localStorage.setItem(USER_ID_KEY, auth.user.id);
+  sessionStorage.setItem(TOKEN_KEY, auth.token);
+  sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));
+  sessionStorage.setItem(USER_ID_KEY, auth.user.id);
 }
 
 /** Recupera el token almacenado (o null si no existe). */
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY);
 }
 
 /** Recupera el userId almacenado (o null si no existe). */
 export function getUserId(): string | null {
-  const direct = localStorage.getItem(USER_ID_KEY);
+  const direct = sessionStorage.getItem(USER_ID_KEY);
   if (direct) return direct;
   const user = getUser();
   return user?.id ?? null;
@@ -51,7 +43,7 @@ export function getUserId(): string | null {
 
 /** Recupera el usuario almacenado (o null si no existe). */
 export function getUser(): AuthUser | null {
-  const raw = localStorage.getItem(USER_KEY);
+  const raw = sessionStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as AuthUser;
@@ -62,32 +54,33 @@ export function getUser(): AuthUser | null {
 
 /** Elimina el token, el usuario y el userId almacenados (logout). */
 export function clearSession(): void {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  localStorage.removeItem(USER_ID_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(USER_ID_KEY);
 }
 
 /**
- * Autentica al usuario contra credenciales hardcodeadas (login local).
- * No realiza ninguna llamada HTTP al backend.
- * Si las credenciales coinciden, crea una sesión demo y la persiste
- * en localStorage. En caso contrario lanza un error descriptivo.
+ * Autentica al usuario contra el endpoint de la API (/api/auth/login).
+ * Persista la sesión devuelta (token + usuario) en sessionStorage.
+ * Lanza un error descriptivo si la petición falla o las credenciales
+ * son inválidas.
  */
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
-  const emailMatch =
-    credentials.email.trim().toLowerCase() === DEFAULT_EMAIL;
-  const passwordMatch = credentials.password === DEFAULT_PASSWORD;
+  const res = await fetch(AUTH_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(credentials),
+  });
 
-  if (!emailMatch || !passwordMatch) {
-    throw new Error(
-      "Credenciales inválidas. Use el usuario demo: demo@multienvios.gt / demo123",
-    );
+  if (res.status === 401) {
+    throw new Error("Credenciales inválidas");
   }
 
-  const auth: AuthResponse = {
-    token: `demo-token-${Date.now()}`,
-    user: DEFAULT_USER,
-  };
+  if (!res.ok) {
+    throw new Error("No se pudo iniciar sesión. Intente nuevamente.");
+  }
+
+  const auth = (await res.json()) as AuthResponse;
   setSession(auth);
   return auth;
 }

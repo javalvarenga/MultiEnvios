@@ -5,7 +5,7 @@ import type { PackageType } from "../models/types.js";
 
 const VALID_PACKAGE_TYPES: PackageType[] = ["package", "envelope", "other"];
 
-export function createShipmentHandler(req: AuthedRequest, res: Response): void {
+export async function createShipmentHandler(req: AuthedRequest, res: Response): Promise<void> {
   const { recipientName, address, packages } = req.body ?? {};
 
   if (!recipientName || typeof recipientName !== "string") {
@@ -48,10 +48,20 @@ export function createShipmentHandler(req: AuthedRequest, res: Response): void {
     }
   }
 
-  const shipment = createShipment(req.userId!, recipientName, address, packages);
-  res.status(201).json(shipment);
+  try {
+    const shipment = await createShipment(req.userId!, recipientName, address, packages);
+    res.status(201).json(shipment);
+  } catch (err) {
+    console.error("createShipment error:", err);
+    res.status(500).json({ error: "Error al crear el envio" });
+  }
 }
 
-export function listShipmentsHandler(req: AuthedRequest, res: Response): void {
-  res.json(listShipments(req.userId!));
+export async function listShipmentsHandler(req: AuthedRequest, res: Response): Promise<void> {
+  try {
+    res.json(await listShipments(req.userId!));
+  } catch (err) {
+    console.error("listShipments error:", err);
+    res.status(500).json({ error: "Error al listar los envios" });
+  }
 }

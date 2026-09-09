@@ -46,7 +46,7 @@ interface CaexConfig {
  * las variables de entorno cuando no hay fila o campos faltantes.
  */
 export const resolveCaexConfig = async (): Promise<CaexConfig> => {
-  const integration = getIntegrationRaw("caex");
+  const integration = await getIntegrationRaw("caex");
 
   // Si existe la fila y esta explicitamente desactivada, bloquear.
   if (integration && integration.isEnabled === false) {

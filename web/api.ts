@@ -67,3 +67,75 @@ export interface GuideRecord {
   createdAt: string;
   isCancelled: boolean;
 }
+
+export interface GuideCreateInput {
+  courier: string;
+  courierId?: number;
+  recipient: GuideRecipient;
+  parcel: GuideParcel;
+}
+
+/** Cabeceras de autenticación reutilizables para las llamadas a la API. */
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/** Obtiene todas las guías del usuario autenticado desde la API. */
+export async function fetchGuides(): Promise<GuideRecord[]> {
+  const res = await fetch("/api/guides", { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudieron cargar las guías");
+  return res.json();
+}
+
+/** Obtiene una guía concreta (en JSON) desde la API. */
+export async function fetchGuide(id: string): Promise<GuideRecord> {
+  const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, {
+    headers: { Accept: "application/json", ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("No se pudo obtener la guía");
+  return res.json();
+}
+
+/**
+ * Crea una guía en la API. El endpoint devuelve el PDF binario y el id
+ * en la cabecera `X-Guide-Id`; tras crearla se recupera el registro en
+ * JSON para devolverlo al llamador.
+ */
+export async function createGuideApi(
+  input: GuideCreateInput,
+): Promise<GuideRecord> {
+  const res = await fetch("/api/guides", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({
+      courier: input.courier,
+      courierId: input.courierId,
+      recipient: input.recipient,
+      parcel: input.parcel,
+    }),
+  });
+  if (!res.ok) throw new Error("No se pudo crear la guía");
+  const id = res.headers.get("X-Guide-Id");
+  if (!id) throw new Error("No se pudo crear la guía");
+  return fetchGuide(id);
+}
+
+/** Anula (cancela) una guía en la API y devuelve el registro actualizado. */
+export async function cancelGuideApi(id: string): Promise<GuideRecord> {
+  const res = await fetch(`/api/guides/${encodeURIComponent(id)}/cancel`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("No se pudo cancelar la guía");
+  return res.json();
+}
+
+/** Elimina una guía en la API. */
+export async function deleteGuideApi(id: string): Promise<void> {
+  const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok && res.status !== 204) throw new Error("No se pudo eliminar la guía");
+}
