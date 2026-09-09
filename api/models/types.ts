@@ -55,6 +55,7 @@ export interface GuideParcel {
 
 export interface GuideInput {
   courier: CourierType;
+  courierId?: number;
   recipient: GuideRecipient;
   parcel: GuideParcel;
 }
@@ -64,6 +65,7 @@ export interface Guide {
   userId: string;
   trackingNumber: string;
   courier: CourierType;
+  courierId: number;
   recipient: GuideRecipient;
   parcel: GuideParcel;
   status: string;

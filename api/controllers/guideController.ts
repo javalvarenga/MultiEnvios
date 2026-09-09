@@ -11,7 +11,7 @@ function toSafeGuide(guide: Guide): SafeGuide {
 }
 
 export function createGuideHandler(req: AuthedRequest, res: Response): void {
-  const { courier, recipient, parcel } = (req.body ?? {}) as Partial<GuideInput>;
+  const { courier, courierId, recipient, parcel } = (req.body ?? {}) as Partial<GuideInput>;
 
   if (!courier || typeof courier !== "string" || !isValidCourier(courier)) {
     res.status(400).json({ error: "El courier es requerido y debe ser valido" });
@@ -86,6 +86,7 @@ export function createGuideHandler(req: AuthedRequest, res: Response): void {
 
   const guide = createGuide(req.userId!, {
     courier,
+    courierId: typeof courierId === "number" ? courierId : 1,
     recipient: { name, phone, department, municipality, address, reference },
     parcel: { description, quantity, codAmount, weight, type },
   });

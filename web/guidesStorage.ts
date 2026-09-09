@@ -27,6 +27,7 @@ function persist(guides: GuideRecord[]): void {
 /** Crea una nueva guía a partir de los datos del formulario y la guarda en localStorage. */
 export function createGuide(input: {
   courier: string;
+  courierId?: number;
   recipient: GuideRecipient;
   parcel: GuideParcel;
   status?: string;
@@ -43,6 +44,7 @@ export function createGuide(input: {
     userId: user?.id ?? "local",
     trackingNumber: `ME-${now.getFullYear()}-${String(now.getTime()).slice(-6)}`,
     courier: input.courier,
+    courierId: input.courierId ?? 1,
     recipient: input.recipient,
     parcel: input.parcel,
     status: input.status ?? "Pendiente",

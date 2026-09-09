@@ -36,6 +36,7 @@ export function createGuide(userId: string, input: GuideInput): Guide {
     userId,
     trackingNumber: buildTrackingNumber(input.courier),
     courier: input.courier,
+    courierId: input.courierId ?? 1,
     recipient,
     parcel,
     status: "created",

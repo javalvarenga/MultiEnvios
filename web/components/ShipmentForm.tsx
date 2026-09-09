@@ -41,6 +41,12 @@ const PACKAGE_TYPE_OPTIONS = [
   { value: "Otros", label: "Otros" },
 ];
 
+const COURIER_OPTIONS = [
+  { value: "1", label: "Cargo Expreso" },
+  { value: "2", label: "Forza" },
+  { value: "3", label: "Guatex" },
+];
+
 let packageKeyCounter = 0;
 
 export function ShipmentForm() {
@@ -49,6 +55,7 @@ export function ShipmentForm() {
 
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [courierId, setCourierId] = useState<string>("1");
 
   // Campos del formulario de paquete
   const [pkgType, setPkgType] = useState<string>("Paquete");
@@ -140,8 +147,11 @@ export function ShipmentForm() {
       weight: totalWeight,
       type: packages[0]?.type ?? "Paquete",
     };
+    const courierOption =
+      COURIER_OPTIONS.find((c) => c.value === courierId) ?? COURIER_OPTIONS[0];
     const guide = createGuide({
-      courier: "Cargo Expreso",
+      courier: courierOption.label,
+      courierId: Number(courierOption.value),
       recipient,
       parcel,
       status: "Pendiente",
@@ -215,6 +225,20 @@ export function ShipmentForm() {
 
       <Card>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item
+            label="Courier"
+            name="courier"
+            initialValue="1"
+            rules={[{ required: true, message: "Seleccione un courier" }]}
+          >
+            <Select
+              value={courierId}
+              onChange={setCourierId}
+              options={COURIER_OPTIONS}
+              placeholder="Seleccione un courier"
+            />
+          </Form.Item>
+
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item
