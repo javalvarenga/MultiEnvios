@@ -1,11 +1,11 @@
+import { query, execute } from "../db/client.js";
+
 /**
- * Repositorio en memoria para la configuracion de integraciones por courier.
+ * Repositorio para la configuracion de integraciones por courier, persistido
+ * en la tabla `integration_settings` de MySQL.
  *
  * Cada courier guarda una fila con su habilitacion y los campos del formulario
  * de configuracion (ver `CourierConfig` en la app web).
- *
- * En una futura migracion a MySQL este repositorio se reescribira contra la
- * tabla real sin cambiar su interfaz publica.
  */
 export interface IntegrationSettings {
   courier: string;
@@ -13,18 +13,44 @@ export interface IntegrationSettings {
   config: Record<string, string>;
 }
 
-const store: Map<string, IntegrationSettings> = new Map();
+interface SettingsRow {
+  courier: string;
+  isEnabled: number;
+  config: string | null;
+}
+
+function toSettings(row: SettingsRow): IntegrationSettings {
+  return {
+    courier: row.courier,
+    isEnabled: Boolean(row.isEnabled),
+    config: row.config ? (JSON.parse(row.config) as Record<string, string>) : {},
+  };
+}
 
 export const settingsRepository = {
-  upsert(settings: IntegrationSettings): IntegrationSettings {
-    store.set(settings.courier, settings);
+  async upsert(settings: IntegrationSettings): Promise<IntegrationSettings> {
+    await execute(
+      `INSERT INTO integration_settings (courier, isEnabled, config)
+       VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE isEnabled = VALUES(isEnabled), config = VALUES(config)`,
+      [settings.courier, settings.isEnabled, JSON.stringify(settings.config)],
+    );
     return settings;
   },
-  find(courier: string): IntegrationSettings | undefined {
-    return store.get(courier);
+
+  async find(courier: string): Promise<IntegrationSettings | undefined> {
+    const rows = await query<SettingsRow>(
+      "SELECT courier, isEnabled, config FROM integration_settings WHERE courier = ?",
+      [courier],
+    );
+    return rows[0] ? toSettings(rows[0]) : undefined;
   },
-  list(): IntegrationSettings[] {
-    return [...store.values()];
+
+  async list(): Promise<IntegrationSettings[]> {
+    const rows = await query<SettingsRow>(
+      "SELECT courier, isEnabled, config FROM integration_settings",
+    );
+    return rows.map(toSettings);
   },
 };
 
@@ -33,8 +59,8 @@ export const settingsRepository = {
  * `undefined` cuando no existe fila (causa que el llamador caiga a variables
  * de entorno), o `{ isEnabled, config }` cuando existe.
  */
-export function getIntegrationRaw(
+export async function getIntegrationRaw(
   courier: string,
-): IntegrationSettings | undefined {
+): Promise<IntegrationSettings | undefined> {
   return settingsRepository.find(courier);
 }

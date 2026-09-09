@@ -5,12 +5,12 @@ import type { Shipment, Package } from "../models/types.js";
 
 const SHIPMENT_COST = 25;
 
-export function createShipment(
+export async function createShipment(
   userId: string,
   recipientName: string,
   address: string,
   packages: Array<Omit<Package, "id">>,
-): Shipment {
+): Promise<Shipment> {
   const packagesWithIds: Package[] = packages.map((pkg) => ({
     ...pkg,
     id: randomUUID(),
@@ -26,10 +26,10 @@ export function createShipment(
     cost: SHIPMENT_COST,
     createdAt: new Date().toISOString(),
   };
-  userRepository.updateBalance(userId, -SHIPMENT_COST);
+  await userRepository.updateBalance(userId, -SHIPMENT_COST);
   return shipmentRepository.create(shipment);
 }
 
-export function listShipments(userId: string): Shipment[] {
+export async function listShipments(userId: string): Promise<Shipment[]> {
   return shipmentRepository.findByUser(userId);
 }
