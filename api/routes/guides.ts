@@ -5,6 +5,7 @@ import {
   getGuideHandler,
   listGuidesHandler,
   cancelGuideHandler,
+  deleteGuideHandler,
 } from "../controllers/guideController.js";
 
 export const guideRouter = Router();
@@ -14,3 +15,4 @@ guideRouter.post("/", createGuideHandler);
 guideRouter.get("/", listGuidesHandler);
 guideRouter.get("/:id", getGuideHandler);
 guideRouter.post("/:id/cancel", cancelGuideHandler);
+guideRouter.delete("/:id", deleteGuideHandler);

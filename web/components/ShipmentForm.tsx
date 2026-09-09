@@ -122,7 +122,7 @@ export function ShipmentForm() {
     }
   };
 
-  const handleSubmit = (values: Record<string, unknown>) => {
+  const handleSubmit = async (values: Record<string, unknown>) => {
     if (packages.length === 0) {
       message.error("Debe agregar al menos un paquete para generar la guía");
       return;
@@ -149,19 +149,23 @@ export function ShipmentForm() {
     };
     const courierOption =
       COURIER_OPTIONS.find((c) => c.value === courierId) ?? COURIER_OPTIONS[0];
-    const guide = createGuide({
-      courier: courierOption.label,
-      courierId: Number(courierOption.value),
-      recipient,
-      parcel,
-      status: "Pendiente",
-      cost: 0,
-    });
-    console.log("Guía generada:", guide);
-    message.success(`Guía ${guide.trackingNumber} creada con éxito`);
-    form.resetFields();
-    setPackages([]);
-    resetPkgFields();
+    try {
+      const guide = await createGuide({
+        courier: courierOption.label,
+        courierId: Number(courierOption.value),
+        recipient,
+        parcel,
+        status: "Pendiente",
+        cost: 0,
+      });
+      console.log("Guía generada:", guide);
+      message.success(`Guía ${guide.trackingNumber} creada con éxito`);
+      form.resetFields();
+      setPackages([]);
+      resetPkgFields();
+    } catch {
+      message.error("No se pudo crear la guía");
+    }
   };
 
   const packageColumns: ColumnsType<PackageItem> = [

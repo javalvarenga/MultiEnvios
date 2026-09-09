@@ -92,4 +92,12 @@ export const guideRepository = {
     );
     return guide;
   },
+
+  async deleteById(id: string, userId: string): Promise<boolean> {
+    const result = await execute(
+      `DELETE FROM guides WHERE id = ? AND userId = ?`,
+      [id, userId],
+    );
+    return result.affectedRows > 0;
+  },
 };

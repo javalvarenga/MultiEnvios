@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthedRequest } from "../middleware/auth.js";
-import { createGuide, getGuide, listGuides, cancelGuide, isValidCourier } from "../services/guideService.js";
+import { createGuide, getGuide, listGuides, cancelGuide, deleteGuide, isValidCourier } from "../services/guideService.js";
 import type { Guide, GuideInput } from "../models/types.js";
 
 type SafeGuide = Omit<Guide, "pdf"> & { pdfSize: number };
@@ -152,5 +152,19 @@ export async function cancelGuideHandler(req: AuthedRequest, res: Response): Pro
   } catch (err) {
     console.error("cancelGuide error:", err);
     res.status(500).json({ error: "Error al cancelar la guia" });
+  }
+}
+
+export async function deleteGuideHandler(req: AuthedRequest, res: Response): Promise<void> {
+  try {
+    const deleted = await deleteGuide(req.params.id, req.userId!);
+    if (!deleted) {
+      res.status(404).json({ error: "Guia no encontrada" });
+      return;
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error("deleteGuide error:", err);
+    res.status(500).json({ error: "Error al eliminar la guia" });
   }
 }

@@ -73,6 +73,13 @@ export async function cancelGuide(
   return guideRepository.update(guide);
 }
 
+export async function deleteGuide(
+  id: string,
+  userId: string,
+): Promise<boolean> {
+  return guideRepository.deleteById(id, userId);
+}
+
 export function isValidCourier(courier: string): courier is CourierType {
   return COURIER_TYPES.includes(courier as CourierType);
 }

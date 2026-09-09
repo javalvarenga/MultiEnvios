@@ -40,14 +40,27 @@ function ShipmentsHistory() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
-    setGuides(getGuides());
-    setLoading(false);
-  }, []);
+    let cancelled = false;
+    setLoading(true);
+    getGuides()
+      .then((data) => {
+        if (!cancelled) setGuides(data);
+      })
+      .catch(() => {
+        if (!cancelled) message.error("No se pudieron cargar las guías");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [message]);
 
-  const handleCancel = (id: string) => {
+  const handleCancel = async (id: string) => {
     setCancellingId(id);
     try {
-      const updated = cancelGuide(id);
+      const updated = await cancelGuide(id);
       if (updated) {
         setGuides((prev) =>
           prev.map((g) => (g.id === id ? { ...g, isCancelled: true, status: "Anulada" } : g)),
