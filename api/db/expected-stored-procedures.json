@@ -1,0 +1,96 @@
+{
+  "generatedAt": "2026-09-10",
+  "scope": "Backend MultiEnvios (api/) — repositorios y controladores",
+  "source": [
+    "api/repositories/SettingsRepository.ts",
+    "api/repositories/guideRepository.ts",
+    "api/repositories/shipmentRepository.ts",
+    "api/repositories/userRepository.ts",
+    "api/controllers/Orders.ts",
+    "api/controllers/Shipping/Caex.ts"
+  ],
+  "summary": {
+    "repositoriesUsingStoredProcedures": 0,
+    "repositoriesUsingInlineSql": 4,
+    "storedProceduresExpected": 1,
+    "storedProceduresPresentInDb": 1,
+    "missingInDb": 0
+  },
+  "repositories": {
+    "SettingsRepository": {
+      "file": "api/repositories/SettingsRepository.ts",
+      "usesStoredProcedures": false,
+      "operations": [
+        { "method": "upsert", "sql": "INSERT INTO integration_settings ... ON DUPLICATE KEY UPDATE", "type": "inline" },
+        { "method": "find",   "sql": "SELECT ... FROM integration_settings WHERE courier = ?", "type": "inline" },
+        { "method": "list",   "sql": "SELECT ... FROM integration_settings", "type": "inline" }
+      ]
+    },
+    "guideRepository": {
+      "file": "api/repositories/guideRepository.ts",
+      "usesStoredProcedures": false,
+      "operations": [
+        { "method": "create",     "sql": "INSERT INTO guides ...", "type": "inline" },
+        { "method": "findById",   "sql": "SELECT ... FROM guides WHERE id = ?", "type": "inline" },
+        { "method": "findByUser", "sql": "SELECT ... FROM guides WHERE userId = ?", "type": "inline" },
+        { "method": "update",     "sql": "UPDATE guides SET ... WHERE id = ?", "type": "inline" },
+        { "method": "deleteById", "sql": "DELETE FROM guides WHERE id = ? AND userId = ?", "type": "inline" }
+      ]
+    },
+    "shipmentRepository": {
+      "file": "api/repositories/shipmentRepository.ts",
+      "usesStoredProcedures": false,
+      "operations": [
+        { "method": "create",    "sql": "INSERT INTO shipments ... / INSERT INTO packages ...", "type": "inline" },
+        { "method": "findByUser","sql": "SELECT ... FROM shipments ... / SELECT ... FROM packages", "type": "inline" }
+      ]
+    },
+    "userRepository": {
+      "file": "api/repositories/userRepository.ts",
+      "usesStoredProcedures": false,
+      "operations": [
+        { "method": "findByEmail",    "sql": "SELECT ... FROM users WHERE email = ?", "type": "inline" },
+        { "method": "findById",       "sql": "SELECT ... FROM users WHERE id = ?", "type": "inline" },
+        { "method": "updateBalance",  "sql": "UPDATE users SET balance = balance + ? WHERE id = ?", "type": "inline" }
+      ]
+    }
+  },
+  "storedProcedures": [
+    {
+      "name": "CT_Orders_AssignGuides",
+      "parameters": [
+        { "name": "p_orderId",       "type": "VARCHAR(36)", "direction": "IN" },
+        { "name": "p_guideNumber",   "type": "VARCHAR(64)", "direction": "IN" },
+        { "name": "p_typeOfService", "type": "INT",         "direction": "IN" }
+      ],
+      "calledFrom": [
+        {
+          "file": "api/controllers/Orders.ts",
+          "line": 20,
+          "call": "CALL CT_Orders_AssignGuides(?, ?, ?)",
+          "args": ["orderId", "guideNumber", "typeOfService"]
+        },
+        {
+          "file": "api/controllers/Shipping/Caex.ts",
+          "line": 241,
+          "call": "CALL CT_Orders_AssignGuides(?)",
+          "note": "string pasada a assignGuides() como _sql; la ejecucion real ocurre en Orders.ts:20"
+        },
+        {
+          "file": "api/controllers/Shipping/Caex.ts",
+          "line": 295,
+          "call": "CALL CT_Orders_AssignGuides(?)",
+          "note": "string pasada a assignGuides() como _sql; la ejecucion real ocurre en Orders.ts:20"
+        }
+      ],
+      "definedIn": "api/db/migrations/20250524000000_full_setup.sql (line 56)",
+      "presentInDb": true,
+      "definition": {
+        "logic": "Si p_typeOfService = 0 marca status='cancelled'; en caso contrario actualiza trackingNumber y status='created' para el guide con id = p_orderId."
+      }
+    }
+  ],
+  "expectedStoredProcedureNames": [
+    "CT_Orders_AssignGuides"
+  ]
+}
