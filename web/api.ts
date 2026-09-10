@@ -1,5 +1,8 @@
 import { getToken } from "./auth";
 
+/** URL base del API. En desarrollo puede quedar vacía para usar el proxy de Vite. */
+const API_URL = import.meta.env.VITE_API_URL ?? "";
+
 export interface DashboardStats {
   totalShipments: number;
   balance: number;
@@ -29,7 +32,7 @@ export interface DashboardData {
 
 export async function fetchDashboard(): Promise<DashboardData> {
   const token = getToken();
-  const res = await fetch("/api/dashboard/stats", {
+  const res = await fetch(`${API_URL}/api/dashboard/stats`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
   if (!res.ok) throw new Error("No se pudieron cargar los datos del dashboard");
@@ -83,14 +86,14 @@ function authHeaders(): Record<string, string> {
 
 /** Obtiene todas las guías del usuario autenticado desde la API. */
 export async function fetchGuides(): Promise<GuideRecord[]> {
-  const res = await fetch("/api/guides", { headers: authHeaders() });
+  const res = await fetch(`${API_URL}/api/guides`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudieron cargar las guías");
   return res.json();
 }
 
 /** Obtiene una guía concreta (en JSON) desde la API. */
 export async function fetchGuide(id: string): Promise<GuideRecord> {
-  const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, {
+  const res = await fetch(`${API_URL}/api/guides/${encodeURIComponent(id)}`, {
     headers: { Accept: "application/json", ...authHeaders() },
   });
   if (!res.ok) throw new Error("No se pudo obtener la guía");
@@ -105,7 +108,7 @@ export async function fetchGuide(id: string): Promise<GuideRecord> {
 export async function createGuideApi(
   input: GuideCreateInput,
 ): Promise<GuideRecord> {
-  const res = await fetch("/api/guides", {
+  const res = await fetch(`${API_URL}/api/guides`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({
@@ -123,7 +126,7 @@ export async function createGuideApi(
 
 /** Anula (cancela) una guía en la API y devuelve el registro actualizado. */
 export async function cancelGuideApi(id: string): Promise<GuideRecord> {
-  const res = await fetch(`/api/guides/${encodeURIComponent(id)}/cancel`, {
+  const res = await fetch(`${API_URL}/api/guides/${encodeURIComponent(id)}/cancel`, {
     method: "POST",
     headers: { ...authHeaders() },
   });
@@ -133,7 +136,7 @@ export async function cancelGuideApi(id: string): Promise<GuideRecord> {
 
 /** Elimina una guía en la API. */
 export async function deleteGuideApi(id: string): Promise<void> {
-  const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, {
+  const res = await fetch(`${API_URL}/api/guides/${encodeURIComponent(id)}`, {
     method: "DELETE",
     headers: authHeaders(),
   });
@@ -152,7 +155,7 @@ export interface CourierSettings {
 
 /** Obtiene todas las configuraciones de couriers desde la API. */
 export async function fetchCourierSettings(): Promise<CourierSettings[]> {
-  const res = await fetch("/api/settings", { headers: authHeaders() });
+  const res = await fetch(`${API_URL}/api/settings`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudieron cargar las configuraciones");
   return res.json();
 }
@@ -163,7 +166,7 @@ export async function saveCourierSettings(
   isEnabled: boolean,
   config: Record<string, string>,
 ): Promise<CourierSettings> {
-  const res = await fetch(`/api/settings/${encodeURIComponent(courier)}`, {
+  const res = await fetch(`${API_URL}/api/settings/${encodeURIComponent(courier)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ isEnabled, config }),

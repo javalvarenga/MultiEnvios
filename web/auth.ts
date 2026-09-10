@@ -19,7 +19,9 @@ const TOKEN_KEY = "multienvios_token";
 const USER_KEY = "multienvios_user";
 const USER_ID_KEY = "multienvios_user_id";
 
-const AUTH_ENDPOINT = "/api/auth/login";
+/** URL base del API. En desarrollo puede quedar vacía para usar el proxy de Vite. */
+const API_URL = import.meta.env.VITE_API_URL ?? "";
+const AUTH_ENDPOINT = `${API_URL}/api/auth/login`;
 
 /** Guarda el token JWT, el usuario y el userId en sessionStorage. */
 export function setSession(auth: AuthResponse): void {
