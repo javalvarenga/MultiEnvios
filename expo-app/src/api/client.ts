@@ -1,12 +1,16 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare const process: { env: Record<string, string | undefined> };
+
 /**
  * URL base del API.
- * En desarrollo local apunta al backend Express (puerto 8000).
- * Para emuladores Android usar http://10.0.2.2:8000, para iOS usar localhost.
+ * Se obtiene de la variable de entorno API_URL; si no está definida
+ * se usa el backend local por defecto.
  */
-export const API_BASE_URL = "http://localhost:8000/api";
+export const API_BASE_URL =
+  process.env.API_URL ?? "http://localhost:8000/api";
 
 /** Clave usada para persistir el JWT en AsyncStorage. */
 export const TOKEN_STORAGE_KEY = "@multienvios_token";
