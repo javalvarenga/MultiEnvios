@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-10",
+  "generatedAt": "2026-09-11",
   "scope": "Backend MultiEnvios (api/) — repositorios y controladores",
   "source": [
     "api/repositories/SettingsRepository.ts",
@@ -7,51 +7,54 @@
     "api/repositories/shipmentRepository.ts",
     "api/repositories/userRepository.ts",
     "api/controllers/Orders.ts",
-    "api/controllers/Shipping/Caex.ts"
+    "api/controllers/Shipping/Caex.ts",
+    "api/controllers/settingsController.ts"
   ],
   "summary": {
-    "repositoriesUsingStoredProcedures": 0,
-    "repositoriesUsingInlineSql": 4,
-    "storedProceduresExpected": 1,
-    "storedProceduresPresentInDb": 1,
+    "repositoriesUsingStoredProcedures": 4,
+    "repositoriesUsingInlineSql": 0,
+    "storedProceduresExpected": 12,
+    "storedProceduresPresentInDb": 12,
     "missingInDb": 0
   },
   "repositories": {
     "SettingsRepository": {
       "file": "api/repositories/SettingsRepository.ts",
-      "usesStoredProcedures": false,
+      "usesStoredProcedures": true,
       "operations": [
-        { "method": "upsert", "sql": "INSERT INTO integration_settings ... ON DUPLICATE KEY UPDATE", "type": "inline" },
-        { "method": "find",   "sql": "SELECT ... FROM integration_settings WHERE courier = ?", "type": "inline" },
-        { "method": "list",   "sql": "SELECT ... FROM integration_settings", "type": "inline" }
+        { "method": "upsert", "sp": "sp_UpsertIntegrationSettings", "type": "call" },
+        { "method": "find",   "sp": "sp_GetIntegrationSettings",   "type": "call" },
+        { "method": "list",   "sp": "sp_ListIntegrationSettings",  "type": "call" }
       ]
     },
     "guideRepository": {
       "file": "api/repositories/guideRepository.ts",
-      "usesStoredProcedures": false,
+      "usesStoredProcedures": true,
       "operations": [
-        { "method": "create",     "sql": "INSERT INTO guides ...", "type": "inline" },
-        { "method": "findById",   "sql": "SELECT ... FROM guides WHERE id = ?", "type": "inline" },
-        { "method": "findByUser", "sql": "SELECT ... FROM guides WHERE userId = ?", "type": "inline" },
-        { "method": "update",     "sql": "UPDATE guides SET ... WHERE id = ?", "type": "inline" },
-        { "method": "deleteById", "sql": "DELETE FROM guides WHERE id = ? AND userId = ?", "type": "inline" }
+        { "method": "create",     "sp": "sp_CreateGuide",    "type": "call" },
+        { "method": "findById",   "sp": "sp_GetGuideById",   "type": "call" },
+        { "method": "findByUser", "sp": "sp_GetGuidesByUser","type": "call" },
+        { "method": "update",     "sp": "sp_UpdateGuide",    "type": "call" },
+        { "method": "deleteById", "sp": "sp_DeleteGuide",    "type": "call" }
       ]
     },
     "shipmentRepository": {
       "file": "api/repositories/shipmentRepository.ts",
-      "usesStoredProcedures": false,
+      "usesStoredProcedures": true,
       "operations": [
-        { "method": "create",    "sql": "INSERT INTO shipments ... / INSERT INTO packages ...", "type": "inline" },
-        { "method": "findByUser","sql": "SELECT ... FROM shipments ... / SELECT ... FROM packages", "type": "inline" }
+        { "method": "create",      "sp": "sp_CreateShipment",     "type": "call" },
+        { "method": "create (pkg)","sp": "sp_CreatePackage",      "type": "call" },
+        { "method": "findByUser",  "sp": "sp_GetShipmentsByUser", "type": "call" },
+        { "method": "findByUser (pkg)", "sp": "sp_GetPackagesByUser","type": "call" }
       ]
     },
     "userRepository": {
       "file": "api/repositories/userRepository.ts",
-      "usesStoredProcedures": false,
+      "usesStoredProcedures": true,
       "operations": [
-        { "method": "findByEmail",    "sql": "SELECT ... FROM users WHERE email = ?", "type": "inline" },
-        { "method": "findById",       "sql": "SELECT ... FROM users WHERE id = ?", "type": "inline" },
-        { "method": "updateBalance",  "sql": "UPDATE users SET balance = balance + ? WHERE id = ?", "type": "inline" }
+        { "method": "findByEmail",   "sp": "sp_GetUserByEmail",    "type": "call" },
+        { "method": "findById",      "sp": "sp_GetUserById",       "type": "call" },
+        { "method": "updateBalance", "sp": "sp_UpdateUserBalance", "type": "call" }
       ]
     }
   },
@@ -69,28 +72,118 @@
           "line": 20,
           "call": "CALL CT_Orders_AssignGuides(?, ?, ?)",
           "args": ["orderId", "guideNumber", "typeOfService"]
-        },
-        {
-          "file": "api/controllers/Shipping/Caex.ts",
-          "line": 241,
-          "call": "CALL CT_Orders_AssignGuides(?)",
-          "note": "string pasada a assignGuides() como _sql; la ejecucion real ocurre en Orders.ts:20"
-        },
-        {
-          "file": "api/controllers/Shipping/Caex.ts",
-          "line": 295,
-          "call": "CALL CT_Orders_AssignGuides(?)",
-          "note": "string pasada a assignGuides() como _sql; la ejecucion real ocurre en Orders.ts:20"
         }
       ],
-      "definedIn": "api/db/migrations/20250524000000_full_setup.sql (line 56)",
+      "definedIn": "api/db/migrations/20250520000001_init_schema.sql (line 57)",
+      "presentInDb": true
+    },
+    {
+      "name": "sp_UpsertIntegrationSettings",
+      "definedIn": "api/db/migrations/20260911000003_sp_settings_management.sql",
       "presentInDb": true,
-      "definition": {
-        "logic": "Si p_typeOfService = 0 marca status='cancelled'; en caso contrario actualiza trackingNumber y status='created' para el guide con id = p_orderId."
-      }
+      "calledFrom": "api/repositories/SettingsRepository.ts"
+    },
+    {
+      "name": "sp_GetIntegrationSettings",
+      "definedIn": "api/db/migrations/20260911000003_sp_settings_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/SettingsRepository.ts"
+    },
+    {
+      "name": "sp_ListIntegrationSettings",
+      "definedIn": "api/db/migrations/20260911000003_sp_settings_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/SettingsRepository.ts"
+    },
+    {
+      "name": "sp_CreateGuide",
+      "definedIn": "api/db/migrations/20260911000002_sp_guides_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/guideRepository.ts"
+    },
+    {
+      "name": "sp_UpdateGuide",
+      "definedIn": "api/db/migrations/20260911000002_sp_guides_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/guideRepository.ts"
+    },
+    {
+      "name": "sp_GetGuidesByUser",
+      "definedIn": "api/db/migrations/20260911000002_sp_guides_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/guideRepository.ts"
+    },
+    {
+      "name": "sp_GetGuideById",
+      "definedIn": "api/db/migrations/20260911000005_sp_guides_extra.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/guideRepository.ts"
+    },
+    {
+      "name": "sp_DeleteGuide",
+      "definedIn": "api/db/migrations/20260911000005_sp_guides_extra.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/guideRepository.ts"
+    },
+    {
+      "name": "sp_CreateShipment",
+      "definedIn": "api/db/migrations/20260911000001_sp_shipments_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/shipmentRepository.ts"
+    },
+    {
+      "name": "sp_CreatePackage",
+      "definedIn": "api/db/migrations/20260911000001_sp_shipments_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/shipmentRepository.ts"
+    },
+    {
+      "name": "sp_GetShipmentsByUser",
+      "definedIn": "api/db/migrations/20260911000001_sp_shipments_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/shipmentRepository.ts"
+    },
+    {
+      "name": "sp_GetPackagesByUser",
+      "definedIn": "api/db/migrations/20260911000006_sp_shipments_extra.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/shipmentRepository.ts"
+    },
+    {
+      "name": "sp_GetUserByEmail",
+      "definedIn": "api/db/migrations/20260911000004_sp_users_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/userRepository.ts"
+    },
+    {
+      "name": "sp_GetUserById",
+      "definedIn": "api/db/migrations/20260911000004_sp_users_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/userRepository.ts"
+    },
+    {
+      "name": "sp_UpdateUserBalance",
+      "definedIn": "api/db/migrations/20260911000004_sp_users_management.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/userRepository.ts"
     }
   ],
   "expectedStoredProcedureNames": [
-    "CT_Orders_AssignGuides"
+    "CT_Orders_AssignGuides",
+    "sp_UpsertIntegrationSettings",
+    "sp_GetIntegrationSettings",
+    "sp_ListIntegrationSettings",
+    "sp_CreateGuide",
+    "sp_UpdateGuide",
+    "sp_GetGuidesByUser",
+    "sp_GetGuideById",
+    "sp_DeleteGuide",
+    "sp_CreateShipment",
+    "sp_CreatePackage",
+    "sp_GetShipmentsByUser",
+    "sp_GetPackagesByUser",
+    "sp_GetUserByEmail",
+    "sp_GetUserById",
+    "sp_UpdateUserBalance"
   ]
 }

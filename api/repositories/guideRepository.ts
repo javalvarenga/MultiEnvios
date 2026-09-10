@@ -1,4 +1,4 @@
-import { query, execute } from "../db/client.js";
+import { query, callProcedure } from "../db/client.js";
 import type { Guide, GuideRecipient, GuideParcel, CourierType } from "../models/types.js";
 
 interface GuideRow {
@@ -35,10 +35,8 @@ function toGuide(row: GuideRow): Guide {
 
 export const guideRepository = {
   async create(guide: Guide): Promise<Guide> {
-    await execute(
-      `INSERT INTO guides
-         (id, userId, trackingNumber, courier, courierId, recipient, parcel, status, cost, pdf, createdAt, isCancelled)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    await callProcedure(
+      "CALL sp_CreateGuide(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         guide.id,
         guide.userId,
@@ -50,8 +48,6 @@ export const guideRepository = {
         guide.status,
         guide.cost,
         guide.pdf,
-        new Date(guide.createdAt),
-        guide.isCancelled,
       ],
     );
     return guide;
@@ -59,10 +55,7 @@ export const guideRepository = {
 
   async findById(id: string): Promise<Guide | undefined> {
     const rows = await query<GuideRow>(
-      `SELECT id, userId, trackingNumber, courier, courierId, recipient, parcel,
-              status, cost, pdf, createdAt, isCancelled
-         FROM guides
-        WHERE id = ?`,
+      "CALL sp_GetGuideById(?)",
       [id],
     );
     return rows[0] ? toGuide(rows[0]) : undefined;
@@ -70,32 +63,23 @@ export const guideRepository = {
 
   async findByUser(userId: string): Promise<Guide[]> {
     const rows = await query<GuideRow>(
-      `SELECT id, userId, trackingNumber, courier, courierId, recipient, parcel,
-              status, cost, pdf, createdAt, isCancelled
-         FROM guides
-        WHERE userId = ?
-        ORDER BY createdAt DESC`,
+      "CALL sp_GetGuidesByUser(?)",
       [userId],
     );
     return rows.map(toGuide);
   },
 
   async update(guide: Guide): Promise<Guide> {
-    await execute(
-      `UPDATE guides
-          SET trackingNumber = ?,
-              status = ?,
-              isCancelled = ?,
-              pdf = ?
-        WHERE id = ?`,
-      [guide.trackingNumber, guide.status, guide.isCancelled, guide.pdf, guide.id],
+    await callProcedure(
+      "CALL sp_UpdateGuide(?, ?, ?, ?, ?)",
+      [guide.id, guide.trackingNumber, guide.status, guide.isCancelled ? 1 : 0, guide.pdf],
     );
     return guide;
   },
 
   async deleteById(id: string, userId: string): Promise<boolean> {
-    const result = await execute(
-      `DELETE FROM guides WHERE id = ? AND userId = ?`,
+    const result = await callProcedure(
+      "CALL sp_DeleteGuide(?, ?)",
       [id, userId],
     );
     return result.affectedRows > 0;

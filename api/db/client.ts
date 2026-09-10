@@ -41,3 +41,20 @@ export async function execute(
   const info = result as { affectedRows: number; insertId: number };
   return { affectedRows: info.affectedRows, insertId: info.insertId };
 }
+
+/**
+ * Ejecuta un stored procedure con `CALL` y devuelve metadatos.
+ *
+ * Se usa `pool.query` en lugar de `pool.execute` porque los prepared
+ * statements de mysql2 no soportan `CALL` de forma fiable (especialmente
+ * con SPs que devuelven resultsets). Para SPs que hacen INSERT/UPDATE/DELETE
+ * el resultado OK header trae affectedRows.
+ */
+export async function callProcedure(
+  sql: string,
+  values: unknown[] = [],
+): Promise<{ affectedRows: number; insertId: number }> {
+  const [result] = await pool.query(sql, values as any[]);
+  const info = result as { affectedRows: number; insertId: number };
+  return { affectedRows: info.affectedRows ?? 0, insertId: info.insertId ?? 0 };
+}

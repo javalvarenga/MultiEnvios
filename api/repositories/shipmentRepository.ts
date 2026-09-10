@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { query, execute } from "../db/client.js";
+import { query, callProcedure } from "../db/client.js";
 import type { Shipment, Package } from "../models/types.js";
 
 interface ShipmentRow {
@@ -33,10 +32,8 @@ function toPackage(row: PackageRow): Package {
 
 export const shipmentRepository = {
   async create(shipment: Shipment): Promise<Shipment> {
-    await execute(
-      `INSERT INTO shipments
-         (id, userId, recipientName, address, status, cost, createdAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    await callProcedure(
+      "CALL sp_CreateShipment(?, ?, ?, ?, ?, ?)",
       [
         shipment.id,
         shipment.userId,
@@ -44,14 +41,12 @@ export const shipmentRepository = {
         shipment.address,
         shipment.status,
         shipment.cost,
-        new Date(shipment.createdAt),
       ],
     );
 
     for (const pkg of shipment.packages) {
-      await execute(
-        `INSERT INTO packages (id, shipmentId, type, content, weight, quantity)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+      await callProcedure(
+        "CALL sp_CreatePackage(?, ?, ?, ?, ?, ?)",
         [pkg.id, shipment.id, pkg.type, pkg.content, pkg.weight, pkg.quantity],
       );
     }
@@ -60,21 +55,15 @@ export const shipmentRepository = {
 
   async findByUser(userId: string): Promise<Shipment[]> {
     const rows = await query<ShipmentRow>(
-      `SELECT id, userId, recipientName, address, status, cost, createdAt
-         FROM shipments
-        WHERE userId = ?
-        ORDER BY createdAt DESC`,
+      "CALL sp_GetShipmentsByUser(?)",
       [userId],
     );
 
     if (rows.length === 0) return [];
 
-    const ids = rows.map((r) => r.id);
     const pkgRows = await query<PackageRow>(
-      `SELECT id, shipmentId, type, content, weight, quantity
-         FROM packages
-        WHERE shipmentId IN (?)`,
-      [ids],
+      "CALL sp_GetPackagesByUser(?)",
+      [userId],
     );
 
     const packagesByShipment = new Map<string, Package[]>();
