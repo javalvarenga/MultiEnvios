@@ -19,8 +19,20 @@ export default defineConfig({
       overlay: true,
     },
     proxy: {
-      "/api": `http://localhost:${process.env.PORT ?? "8000"}`,
-      "/health": `http://localhost:${process.env.PORT ?? "8000"}`,
+      // El target usa VITE_API_URL (definida en web/.env) para apuntar al backend
+      // correspondiente; si no esta definida, cae al backend local en :8000.
+      // changeOrigin reescribe el Host al del target y secure:false ignora
+      // certificados invalidos para evitar errores de conexion (ECONNREFUSED/SSL).
+      "/api": {
+        target: process.env.VITE_API_URL || "http://localhost:8000",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/health": {
+        target: process.env.VITE_API_URL || "http://localhost:8000",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
