@@ -1,4 +1,4 @@
-import { query, execute } from "../db/client.js";
+import { query, callProcedure } from "../db/client.js";
 import type { User } from "../models/types.js";
 
 interface UserRow {
@@ -22,7 +22,7 @@ function toUser(row: UserRow): User {
 export const userRepository = {
   async findByEmail(email: string): Promise<User | undefined> {
     const rows = await query<UserRow>(
-      "SELECT id, email, password, name, balance FROM users WHERE email = ?",
+      "CALL sp_GetUserByEmail(?)",
       [email],
     );
     return rows[0] ? toUser(rows[0]) : undefined;
@@ -30,16 +30,16 @@ export const userRepository = {
 
   async findById(id: string): Promise<User | undefined> {
     const rows = await query<UserRow>(
-      "SELECT id, email, password, name, balance FROM users WHERE id = ?",
+      "CALL sp_GetUserById(?)",
       [id],
     );
     return rows[0] ? toUser(rows[0]) : undefined;
   },
 
   async updateBalance(id: string, delta: number): Promise<void> {
-    await execute("UPDATE users SET balance = balance + ? WHERE id = ?", [
-      delta,
+    await callProcedure("CALL sp_UpdateUserBalance(?, ?)", [
       id,
+      delta,
     ]);
   },
 };

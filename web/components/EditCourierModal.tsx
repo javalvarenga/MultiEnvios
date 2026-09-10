@@ -31,6 +31,8 @@ export interface CourierConfig {
 interface EditCourierModalProps {
   open: boolean;
   courier: CourierConfig | null;
+  /** Indica que hay una petición de guardado en curso. */
+  saving?: boolean;
   onClose: () => void;
   onSave: (updated: CourierConfig) => void;
 }
@@ -38,6 +40,7 @@ interface EditCourierModalProps {
 export function EditCourierModal({
   open,
   courier,
+  saving = false,
   onClose,
   onSave,
 }: EditCourierModalProps) {
@@ -53,9 +56,14 @@ export function EditCourierModal({
     try {
       const values = await form.validateFields();
       if (courier) {
-        onSave({ ...courier, ...values });
+        const isActive = values.status === "Activa";
+        onSave({
+          ...courier,
+          ...values,
+          status: isActive ? "Activa" : "Inactiva",
+          integration: isActive ? "Integración activa" : "Integración pendiente",
+        });
       }
-      onClose();
     } catch {
       // validation errors handled by form
     }
@@ -68,8 +76,10 @@ export function EditCourierModal({
       onCancel={onClose}
       footer={
         <Space>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button type="primary" onClick={handleOk}>
+          <Button onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button type="primary" onClick={handleOk} loading={saving}>
             Guardar
           </Button>
         </Space>
@@ -82,6 +92,14 @@ export function EditCourierModal({
         layout="vertical"
         initialValues={courier ?? undefined}
       >
+        <Form.Item name="status" label="Estado de la integración">
+          <Select
+            options={[
+              { value: "Activa", label: "Activa" },
+              { value: "Inactiva", label: "Inactiva" },
+            ]}
+          />
+        </Form.Item>
         <Form.Item name="remitente" label="Remitente">
           <Input />
         </Form.Item>

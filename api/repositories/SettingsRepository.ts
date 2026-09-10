@@ -1,4 +1,4 @@
-import { query, execute } from "../db/client.js";
+import { query, callProcedure } from "../db/client.js";
 
 /**
  * Repositorio para la configuracion de integraciones por courier, persistido
@@ -29,18 +29,17 @@ function toSettings(row: SettingsRow): IntegrationSettings {
 
 export const settingsRepository = {
   async upsert(settings: IntegrationSettings): Promise<IntegrationSettings> {
-    await execute(
-      `INSERT INTO integration_settings (courier, isEnabled, config)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE isEnabled = VALUES(isEnabled), config = VALUES(config)`,
-      [settings.courier, settings.isEnabled, JSON.stringify(settings.config)],
-    );
+    await callProcedure("CALL sp_UpsertIntegrationSettings(?, ?, ?)", [
+      settings.courier,
+      settings.isEnabled ? 1 : 0,
+      JSON.stringify(settings.config),
+    ]);
     return settings;
   },
 
   async find(courier: string): Promise<IntegrationSettings | undefined> {
     const rows = await query<SettingsRow>(
-      "SELECT courier, isEnabled, config FROM integration_settings WHERE courier = ?",
+      "CALL sp_GetIntegrationSettings(?)",
       [courier],
     );
     return rows[0] ? toSettings(rows[0]) : undefined;
@@ -48,7 +47,7 @@ export const settingsRepository = {
 
   async list(): Promise<IntegrationSettings[]> {
     const rows = await query<SettingsRow>(
-      "SELECT courier, isEnabled, config FROM integration_settings",
+      "CALL sp_ListIntegrationSettings()",
     );
     return rows.map(toSettings);
   },

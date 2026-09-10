@@ -139,3 +139,35 @@ export async function deleteGuideApi(id: string): Promise<void> {
   });
   if (!res.ok && res.status !== 204) throw new Error("No se pudo eliminar la guía");
 }
+
+/* ------------------------------------------------------------------ */
+/* Configuración de couriers (integration_settings)                   */
+/* ------------------------------------------------------------------ */
+
+export interface CourierSettings {
+  courier: string;
+  isEnabled: boolean;
+  config: Record<string, string>;
+}
+
+/** Obtiene todas las configuraciones de couriers desde la API. */
+export async function fetchCourierSettings(): Promise<CourierSettings[]> {
+  const res = await fetch("/api/settings", { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudieron cargar las configuraciones");
+  return res.json();
+}
+
+/** Persiste la configuración de un courier en la API. */
+export async function saveCourierSettings(
+  courier: string,
+  isEnabled: boolean,
+  config: Record<string, string>,
+): Promise<CourierSettings> {
+  const res = await fetch(`/api/settings/${encodeURIComponent(courier)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ isEnabled, config }),
+  });
+  if (!res.ok) throw new Error("No se pudo guardar la configuración");
+  return res.json();
+}

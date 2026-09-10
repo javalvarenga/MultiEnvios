@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Tabs,
   Table,
@@ -7,27 +7,65 @@ import {
   Card,
   Button,
   Space,
+  message,
+  Spin,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, ReloadOutlined } from "@ant-design/icons";
 import {
   EditCourierModal,
   type CourierConfig,
 } from "./EditCourierModal";
+import {
+  fetchCourierSettings,
+  saveCourierSettings,
+  type CourierSettings,
+} from "../api";
 
 const { Title, Paragraph } = Typography;
 
-const DUMMY_COURIERS: CourierConfig[] = [
+/**
+ * Metadatos estáticos de los couriers soportados: nombre, servicio y
+ * descripción. Estos datos no se persisten en la BD; solo sirven para
+ * mostrar la tabla. La configuración editable (credenciales, URLs, etc.)
+ * se guarda en `integration_settings` vía la API.
+ */
+const COURIER_METADATA: Array<{
+  key: string;
+  courier: string;
+  name: string;
+  service: string;
+  description: string;
+}> = [
   {
-    key: "1",
+    key: "caex",
+    courier: "caex",
     name: "Cargo",
     service: "Cargo Expreso (CAEX)",
     description: "Generación y anulación de guías de envío.",
-    status: "Activa",
-    integration: "Integración activa",
+  },
+  {
+    key: "forza",
+    courier: "forza",
+    name: "Forza",
+    service: "Forza Express",
+    description: "Generación de guías y seguimiento de envíos.",
+  },
+  {
+    key: "guatex",
+    courier: "guatex",
+    name: "Guatex",
+    service: "Guatex",
+    description: "Generación de guías de envío nacionales.",
+  },
+];
+
+/** Configuración por defecto cuando un courier no tiene fila en la BD. */
+const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
+  caex: {
     remitente: "CATTLEYA",
     usuario: "CATTLEYA",
-    password: "secret123",
+    password: "",
     codigoCredito: "0040256",
     formatoImpresion: "4",
     codigoPobladoOrigen: "1963",
@@ -37,16 +75,10 @@ const DUMMY_COURIERS: CourierConfig[] = [
     urlGeneracion: "/guias/generar",
     urlCancelacion: "/guias/cancelar",
   },
-  {
-    key: "2",
-    name: "Forza",
-    service: "Forza Express",
-    description: "Generación de guías y seguimiento de envíos.",
-    status: "Activa",
-    integration: "Integración activa",
+  forza: {
     remitente: "CATTLEYA",
     usuario: "forza_user",
-    password: "forza_pass",
+    password: "",
     codigoCredito: "1000250",
     formatoImpresion: "2",
     codigoPobladoOrigen: "1001",
@@ -56,16 +88,10 @@ const DUMMY_COURIERS: CourierConfig[] = [
     urlGeneracion: "/guias/generar",
     urlCancelacion: "/guias/cancelar",
   },
-  {
-    key: "3",
-    name: "Guatex",
-    service: "Guatex",
-    description: "Generación de guías de envío nacionales.",
-    status: "Inactiva",
-    integration: "Integración pendiente",
+  guatex: {
     remitente: "CATTLEYA",
     usuario: "guatex_user",
-    password: "guatex_pass",
+    password: "",
     codigoCredito: "2000333",
     formatoImpresion: "1",
     codigoPobladoOrigen: "0901",
@@ -75,22 +101,109 @@ const DUMMY_COURIERS: CourierConfig[] = [
     urlGeneracion: "",
     urlCancelacion: "",
   },
-];
+};
+
+/** Convierte una lista de CourierSettings (API) a CourierConfig[] (UI). */
+function settingsToCouriers(
+  settings: CourierSettings[],
+): CourierConfig[] {
+  const byCourier = new Map(settings.map((s) => [s.courier, s]));
+
+  return COURIER_METADATA.map((meta) => {
+    const stored = byCourier.get(meta.courier);
+    const isEnabled = stored?.isEnabled ?? false;
+    const config = stored?.config ?? DEFAULT_CONFIG[meta.courier] ?? {};
+
+    return {
+      key: meta.key,
+      name: meta.name,
+      service: meta.service,
+      description: meta.description,
+      status: isEnabled ? "Activa" : "Inactiva",
+      integration: isEnabled ? "Integración activa" : "Integración pendiente",
+      remitente: config.remitente ?? "",
+      usuario: config.usuario ?? "",
+      password: config.password ?? "",
+      codigoCredito: config.codigoCredito ?? "",
+      formatoImpresion: config.formatoImpresion ?? "",
+      codigoPobladoOrigen: config.codigoPobladoOrigen ?? "",
+      direccionOrigen: config.direccionOrigen ?? "",
+      telefonoOrigen: config.telefonoOrigen ?? "",
+      hostServicio: config.hostServicio ?? "",
+      urlGeneracion: config.urlGeneracion ?? "",
+      urlCancelacion: config.urlCancelacion ?? "",
+    };
+  });
+}
+
+/** Convierte un CourierConfig (UI) al formato esperado por la API. */
+function courierToSettings(
+  courier: CourierConfig,
+): { courier: string; isEnabled: boolean; config: Record<string, string> } {
+  return {
+    courier: courier.key,
+    isEnabled: courier.status === "Activa",
+    config: {
+      remitente: courier.remitente,
+      usuario: courier.usuario,
+      password: courier.password,
+      codigoCredito: courier.codigoCredito,
+      formatoImpresion: courier.formatoImpresion,
+      codigoPobladoOrigen: courier.codigoPobladoOrigen,
+      direccionOrigen: courier.direccionOrigen,
+      telefonoOrigen: courier.telefonoOrigen,
+      hostServicio: courier.hostServicio,
+      urlGeneracion: courier.urlGeneracion,
+      urlCancelacion: courier.urlCancelacion,
+    },
+  };
+}
 
 export function ConfigScreen() {
-  const [couriers, setCouriers] = useState<CourierConfig[]>(DUMMY_COURIERS);
+  const [couriers, setCouriers] = useState<CourierConfig[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CourierConfig | null>(null);
+
+  const loadCouriers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const settings = await fetchCourierSettings();
+      setCouriers(settingsToCouriers(settings));
+    } catch {
+      // Si la API falla, cargamos defaults para que la UI no quede vacía.
+      setCouriers(settingsToCouriers([]));
+      message.error("No se pudieron cargar las configuraciones de couriers");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCouriers();
+  }, [loadCouriers]);
 
   const handleEdit = (courier: CourierConfig) => {
     setEditing(courier);
     setModalOpen(true);
   };
 
-  const handleSave = (updated: CourierConfig) => {
-    setCouriers((prev) =>
-      prev.map((c) => (c.key === updated.key ? updated : c)),
-    );
+  const handleSave = async (updated: CourierConfig) => {
+    setSaving(true);
+    try {
+      const { courier, isEnabled, config } = courierToSettings(updated);
+      await saveCourierSettings(courier, isEnabled, config);
+      // Actualizamos el estado local con el resultado guardado.
+      setCouriers((prev) =>
+        prev.map((c) => (c.key === updated.key ? updated : c)),
+      );
+      message.success(`Configuración de ${updated.name} guardada`);
+    } catch {
+      message.error("No se pudo guardar la configuración");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const columns: ColumnsType<CourierConfig> = [
@@ -145,7 +258,12 @@ export function ConfigScreen() {
       title: "Contraseña",
       dataIndex: "password",
       key: "password",
-      render: () => <span>•••• (ya configurado)</span>,
+      render: (password: string) =>
+        password ? (
+          <span>•••• (ya configurado)</span>
+        ) : (
+          <span style={{ color: "#999" }}>No configurado</span>
+        ),
     },
     {
       title: "Acciones",
@@ -171,12 +289,24 @@ export function ConfigScreen() {
       label: "Couriers",
       children: (
         <Card>
-          <Table<CourierConfig>
-            columns={columns}
-            dataSource={couriers}
-            pagination={false}
-            scroll={{ x: 800 }}
-          />
+          <div style={{ marginBottom: 16, textAlign: "right" }}>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={loadCouriers}
+              loading={loading}
+            >
+              Recargar
+            </Button>
+          </div>
+          <Spin spinning={loading}>
+            <Table<CourierConfig>
+              columns={columns}
+              dataSource={couriers}
+              pagination={false}
+              scroll={{ x: 800 }}
+              rowKey="key"
+            />
+          </Spin>
         </Card>
       ),
     },
@@ -198,6 +328,7 @@ export function ConfigScreen() {
       <EditCourierModal
         open={modalOpen}
         courier={editing}
+        saving={saving}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
       />
