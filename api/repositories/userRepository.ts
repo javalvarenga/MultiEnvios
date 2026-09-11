@@ -36,6 +36,15 @@ export const userRepository = {
     return rows[0] ? toUser(rows[0]) : undefined;
   },
 
+  async create(email: string, password: string, name: string): Promise<User | undefined> {
+    await callProcedure("CALL sp_InsertUser(?, ?, ?)", [
+      email,
+      password,
+      name,
+    ]);
+    return this.findByEmail(email);
+  },
+
   async updateBalance(id: string, delta: number): Promise<void> {
     await callProcedure("CALL sp_UpdateUserBalance(?, ?)", [
       id,
