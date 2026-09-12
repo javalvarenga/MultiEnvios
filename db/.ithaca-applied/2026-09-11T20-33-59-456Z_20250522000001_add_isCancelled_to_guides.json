@@ -1,0 +1,7 @@
+{
+  "appliedAt": "2026-09-11T20:33:59.456Z",
+  "database": "Multienvios",
+  "sourcePath": "api/db/migrations/20250522000001_add_isCancelled_to_guides.sql",
+  "executed": 0,
+  "statementCount": 1
+}

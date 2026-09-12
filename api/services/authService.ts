@@ -19,6 +19,24 @@ export async function login(email: string, password: string): Promise<AuthResult
   return { token, user: safe };
 }
 
+export async function register(
+  email: string,
+  password: string,
+  name: string,
+): Promise<AuthResult | null> {
+  const existing = await userRepository.findByEmail(email);
+  if (existing) return null;
+
+  const user = await userRepository.create(email, password, name);
+  if (!user) return null;
+
+  const token = jwt.sign({ sub: user.id }, config.jwtSecret, {
+    expiresIn: '1h',
+  });
+  const { password: _password, ...safe } = user;
+  return { token, user: safe };
+}
+
 export function verify(token: string): string | null {
   try {
     const payload = jwt.verify(token, config.jwtSecret) as { sub: string };

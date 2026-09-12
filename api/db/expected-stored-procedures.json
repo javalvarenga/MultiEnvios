@@ -13,8 +13,8 @@
   "summary": {
     "repositoriesUsingStoredProcedures": 4,
     "repositoriesUsingInlineSql": 0,
-    "storedProceduresExpected": 12,
-    "storedProceduresPresentInDb": 12,
+    "storedProceduresExpected": 13,
+    "storedProceduresPresentInDb": 13,
     "missingInDb": 0
   },
   "repositories": {
@@ -54,6 +54,7 @@
       "operations": [
         { "method": "findByEmail",   "sp": "sp_GetUserByEmail",    "type": "call" },
         { "method": "findById",      "sp": "sp_GetUserById",       "type": "call" },
+        { "method": "create",         "sp": "sp_InsertUser",         "type": "call" },
         { "method": "updateBalance", "sp": "sp_UpdateUserBalance", "type": "call" }
       ]
     }
@@ -150,6 +151,12 @@
       "calledFrom": "api/repositories/shipmentRepository.ts"
     },
     {
+      "name": "sp_InsertUser",
+      "definedIn": "api/db/migrations/20260911000007_sp_insert_user.sql",
+      "presentInDb": true,
+      "calledFrom": "api/repositories/userRepository.ts"
+    },
+    {
       "name": "sp_GetUserByEmail",
       "definedIn": "api/db/migrations/20260911000004_sp_users_management.sql",
       "presentInDb": true,
@@ -182,6 +189,7 @@
     "sp_CreatePackage",
     "sp_GetShipmentsByUser",
     "sp_GetPackagesByUser",
+    "sp_InsertUser",
     "sp_GetUserByEmail",
     "sp_GetUserById",
     "sp_UpdateUserBalance"
