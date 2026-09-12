@@ -1,0 +1,7 @@
+{
+  "appliedAt": "2026-09-12T06:34:14.015Z",
+  "database": "Multienvios",
+  "sourcePath": "api/db/migrations/20260911000004_sp_users_management.sql",
+  "executed": 0,
+  "statementCount": 3
+}

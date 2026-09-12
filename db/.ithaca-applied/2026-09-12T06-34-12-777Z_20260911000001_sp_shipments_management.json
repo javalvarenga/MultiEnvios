@@ -1,0 +1,7 @@
+{
+  "appliedAt": "2026-09-12T06:34:12.777Z",
+  "database": "Multienvios",
+  "sourcePath": "api/db/migrations/20260911000001_sp_shipments_management.sql",
+  "executed": 0,
+  "statementCount": 3
+}
